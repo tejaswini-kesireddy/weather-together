@@ -1,2 +1,2 @@
-# weather-together
+# WeatherTogether
 Crowd cast supported weather alert system
