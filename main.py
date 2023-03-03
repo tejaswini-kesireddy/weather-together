@@ -1,0 +1,50 @@
+import uvicorn
+from fastapi import FastAPI
+from fastapi import HTTPException
+from fastapi.responses import RedirectResponse
+from pydantic import EmailStr, PositiveInt
+
+from helpers.log import logger
+from helpers.validators import validate_zip, validate_email_address, validate_time
+
+app = FastAPI()
+
+
+@app.get("/")
+async def root():
+    """This function redirects root page to docs."""
+    return RedirectResponse("/docs")
+
+
+@app.get("/health")
+async def health():
+    """This function checks the health of the api"""
+    return {"OK": True}
+
+
+async def validations(email_address: EmailStr, zipcode: PositiveInt, report_time: str):
+    """This function validates all the input parameters."""
+    zip_valid = await validate_zip(zipcode)
+    if not zip_valid:
+        raise HTTPException(status_code=400, detail="zipcode is invalid: %d. zipcodes must be 5-digit" % zipcode)
+    result = await validate_email_address(email_address)
+    if result:
+        raise HTTPException(status_code=400, detail="email is invalid: %s. %s" % (email_address, result))
+    time_valid = await validate_time(report_time)
+    if not time_valid:
+        raise HTTPException(status_code=400, detail="time is invalid: %s" % report_time)
+    return {"OK": "Validation was successful"}
+
+
+@app.post("/create-alert")
+async def user_data(email_address: EmailStr, zipcode: PositiveInt, report_time: str):
+    """This function gets the information from the user."""
+    logger.info("Email: %s" % email_address)
+    logger.info("ZIP Code: %s" % zipcode)
+    logger.info("Report Time: %s" % report_time)
+    validation_result = await validations(email_address, zipcode, report_time)
+    return validation_result
+
+
+if __name__ == "__main__":
+    uvicorn.run("main:app", port=5000, log_level="info")
