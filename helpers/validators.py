@@ -24,3 +24,10 @@ async def validate_time(report_time):
         return True
     except ValueError as error:
         logger.error(error)
+
+
+async def validate_frequency(frequency):
+    if frequency is None:
+        return True
+    if 5 <= frequency <= 60 and frequency % 5 == 0:
+        return True
