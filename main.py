@@ -1,6 +1,7 @@
+import time
+
 import uvicorn
-from fastapi import FastAPI
-from fastapi import HTTPException
+from fastapi import FastAPI, HTTPException, UploadFile
 from fastapi.responses import RedirectResponse
 from pydantic import EmailStr, PositiveInt
 
@@ -38,11 +39,13 @@ async def validations(email_address: EmailStr, zipcode: PositiveInt, report_time
     freq_valid = await validators.validate_frequency(frequency)
     if not freq_valid:
         raise HTTPException(status_code=400, detail="frequency is invalid: %s" % frequency)
-    db.connection.execute(
-        f"INSERT INTO container {user_data.user_input} VALUES (?,?,?,?);",
-        (email_address, zipcode, report_time, frequency)
-    )
-    db.connection.commit()
+    with db.connection:
+        cursor = db.connection.cursor()
+        cursor.execute(
+            f"INSERT INTO container {user_data.user_input} VALUES (?,?,?,?);",
+            (email_address, zipcode, report_time, frequency)
+        )
+        db.connection.commit()
     return {"OK": "Entry is added to the database successfully"}
 
 
@@ -55,6 +58,26 @@ async def create_alert(email_address: EmailStr, zipcode: PositiveInt, report_tim
     logger.info("Frequency %s", frequency)
     validation_result = await validations(email_address, zipcode, report_time, frequency)
     return validation_result
+
+
+@app.post("/publish-info")
+async def publish_info(email_address: EmailStr, description: str, image: UploadFile = None):
+    """This function gets the information for crowd sourcing"""
+    with db.connection:
+        cursor = db.connection.cursor()
+        retrieve = cursor.execute(
+            "SELECT * FROM container WHERE email_address=?;", (email_address,)
+        ).fetchall()
+
+    if not retrieve:
+        raise HTTPException(status_code=400, detail="email not found in db: %s" % email_address)
+    if not image and not description:
+        raise HTTPException(status_code=404, detail="either image or description is required")
+    extension = image.filename.split(".")[-1]
+    file_name = str(int(time.time())) + "." + extension
+    with open(file_name, "wb") as file:
+        file.write(await image.read())
+    raise HTTPException(status_code=200, detail="email found: %s" % email_address)
 
 
 if __name__ == "__main__":
