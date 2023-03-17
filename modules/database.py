@@ -1,10 +1,12 @@
 import sqlite3
 
+from modules.accessories import user_data
+
 
 class DB:
     def __init__(self):
         self.connection = sqlite3.connect(database="datastore.db")
-        self.connection.execute("CREATE TABLE IF NOT EXISTS container ('email_address', 'zipcode', 'report_time', 'frequency')")
+        self.connection.execute(f"CREATE TABLE IF NOT EXISTS container {user_data.user_input}")
 
 
 db = DB()

@@ -5,6 +5,7 @@ from fastapi.responses import RedirectResponse
 from pydantic import EmailStr, PositiveInt
 
 from helpers import validators, log
+from modules.accessories import user_data
 from modules.database import db
 
 app = FastAPI()
@@ -38,7 +39,7 @@ async def validations(email_address: EmailStr, zipcode: PositiveInt, report_time
     if not freq_valid:
         raise HTTPException(status_code=400, detail="frequency is invalid: %s" % frequency)
     db.connection.execute(
-        "INSERT INTO container ('email_address', 'zipcode', 'report_time', 'frequency') VALUES (?,?,?,?);",
+        f"INSERT INTO container {user_data.user_input} VALUES (?,?,?,?);",
         (email_address, zipcode, report_time, frequency)
     )
     db.connection.commit()
@@ -46,7 +47,7 @@ async def validations(email_address: EmailStr, zipcode: PositiveInt, report_time
 
 
 @app.post("/create-alert")
-async def user_data(email_address: EmailStr, zipcode: PositiveInt, report_time: str, frequency: int = None):
+async def create_alert(email_address: EmailStr, zipcode: PositiveInt, report_time: str, frequency: int = None):
     """This function gets the information from the user."""
     logger.info("Email: %s", email_address)
     logger.info("ZIP Code: %s", zipcode)

@@ -13,7 +13,7 @@ async def validate_zip(zipcode: PositiveInt):
 
 async def validate_email_address(email_address):
     response = validate_email(email_address)
-    if not response.ok:
+    if response.ok is False:
         logger.error(response.body)
         return response.body
 
