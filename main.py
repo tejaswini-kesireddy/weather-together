@@ -1,3 +1,4 @@
+import os.path
 import time
 
 import uvicorn
@@ -71,12 +72,14 @@ async def publish_info(email_address: EmailStr, description: str, image: UploadF
 
     if not retrieve:
         raise HTTPException(status_code=400, detail="email not found in db: %s" % email_address)
-    if not image and not description:
-        raise HTTPException(status_code=404, detail="either image or description is required")
-    extension = image.filename.split(".")[-1]
-    file_name = str(int(time.time())) + "." + extension
-    with open(file_name, "wb") as file:
-        file.write(await image.read())
+    if not description:
+        raise HTTPException(status_code=404, detail="description is required")
+    if image:
+        extension = image.filename.split(".")[-1]
+        # todo: create a thread to send notifications
+        file_name = os.path.join("images", str(int(time.time())) + "." + extension)
+        with open(file_name, "wb") as file:
+            file.write(await image.read())
     raise HTTPException(status_code=200, detail="email found: %s" % email_address)
 
 
