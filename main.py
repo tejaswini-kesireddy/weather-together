@@ -1,9 +1,10 @@
 import os
+import random
+import string
 import time
+
 import gmailconnector
 import uvicorn
-import string
-import random
 from fastapi import FastAPI, HTTPException, UploadFile
 from fastapi.responses import RedirectResponse
 from pydantic import EmailStr, PositiveInt
@@ -14,6 +15,11 @@ from modules.database import db
 
 app = FastAPI()
 logger = log.logger
+
+# SMTP port numbers: 25, 465, 587, 2525
+# Most reliable: 587, 2525
+email_object = gmailconnector.SendEmail(gmail_user=os.environ.get("EMAIL_USERNAME"),
+                                        gmail_pass=os.environ.get("EMAIL_PASSWORD"))
 
 
 @app.get("/", include_in_schema=False)
@@ -64,8 +70,6 @@ def validations(email_address: EmailStr, zipcode: PositiveInt, report_time: str,
 
 
 def send_otp(email_address: EmailStr):
-    email_object = gmailconnector.SendEmail(gmail_user=os.environ.get("EMAIL_USERNAME"),
-                                            gmail_pass=os.environ.get("EMAIL_PASSWORD"))
     rand_str = ''.join(random.choices(string.ascii_uppercase + string.digits, k=5))
     response = email_object.send_email(recipient=email_address, subject='WeatherTogether - Verify your email',
                                        sender="WeatherTogether",
@@ -106,6 +110,7 @@ async def publish_info(email_address: EmailStr, description: str, image: UploadF
     if image:
         extension = image.filename.split(".")[-1]
         # todo: create a thread to send notifications
+        #   notifications should contain a user ID, if needed to report
         file_name = os.path.join("images", str(int(time.time())) + "." + extension)
         with open(file_name, "wb") as file:
             file.write(await image.read())
