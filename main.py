@@ -1,13 +1,15 @@
-import os.path
+import os
 import time
-
+import gmailconnector
 import uvicorn
+import string
+import random
 from fastapi import FastAPI, HTTPException, UploadFile
 from fastapi.responses import RedirectResponse
 from pydantic import EmailStr, PositiveInt
 
 from helpers import validators, log
-from modules.accessories import user_data
+from modules.accessories import user_data, otp_dict
 from modules.database import db
 
 app = FastAPI()
@@ -26,20 +28,31 @@ async def health():
     return {"OK": True}
 
 
-async def validations(email_address: EmailStr, zipcode: PositiveInt, report_time: str, frequency: int):
+def validations(email_address: EmailStr, zipcode: PositiveInt, report_time: str, frequency: int, otp: str):
     """This function validates all the input parameters."""
-    zip_valid = await validators.validate_zip(zipcode)
+    zip_valid = validators.validate_zip(zipcode)
     if not zip_valid:
         raise HTTPException(status_code=400, detail="zipcode is invalid: %d. zipcodes must be 5-digit" % zipcode)
-    result = await validators.validate_email_address(email_address)
+    result = validators.validate_email_address(email_address)
     if result:
         raise HTTPException(status_code=400, detail="email is invalid: %s. %s" % (email_address, result))
-    time_valid = await validators.validate_time(report_time)
+    time_valid = validators.validate_time(report_time)
     if not time_valid:
         raise HTTPException(status_code=400, detail="time is invalid: %s" % report_time)
-    freq_valid = await validators.validate_frequency(frequency)
+    freq_valid = validators.validate_frequency(frequency)
     if not freq_valid:
         raise HTTPException(status_code=400, detail="frequency is invalid: %s" % frequency)
+    if otp:
+        if otp == otp_dict.get(email_address):
+            logger.info("%s passed OTP validation", email_address)
+        else:
+            raise HTTPException(status_code=401, detail="unauthorized")
+    else:
+        if send_otp(email_address):
+            logger.info("OTP has been sent")
+            return {"OK": "Please enter the OTP"}
+        else:
+            raise HTTPException(status_code=500, detail="failed to send otp")
     with db.connection:
         cursor = db.connection.cursor()
         cursor.execute(
@@ -50,14 +63,30 @@ async def validations(email_address: EmailStr, zipcode: PositiveInt, report_time
     return {"OK": "Entry is added to the database successfully"}
 
 
+def send_otp(email_address: EmailStr):
+    email_object = gmailconnector.SendEmail(gmail_user=os.environ.get("EMAIL_USERNAME"),
+                                            gmail_pass=os.environ.get("EMAIL_PASSWORD"))
+    rand_str = ''.join(random.choices(string.ascii_uppercase + string.digits, k=5))
+    response = email_object.send_email(recipient=email_address, subject='WeatherTogether - Verify your email',
+                                       sender="WeatherTogether",
+                                       body=f"Your WeatherTogether verification code is:{rand_str}")
+    if response.ok:
+        logger.info("One time verification passcode has been sent to %s", email_address)
+        otp_dict[email_address] = rand_str
+        return True
+    else:
+        logger.error(response.body)
+
+
 @app.post("/create-alert")
-async def create_alert(email_address: EmailStr, zipcode: PositiveInt, report_time: str, frequency: int = None):
+async def create_alert(email_address: EmailStr, zipcode: PositiveInt, report_time: str,
+                       frequency: int = None, otp: str = None):
     """This function gets the information from the user."""
     logger.info("Email: %s", email_address)
     logger.info("ZIP Code: %s", zipcode)
     logger.info("Report Time: %s", report_time)
     logger.info("Frequency %s", frequency)
-    validation_result = await validations(email_address, zipcode, report_time, frequency)
+    validation_result = validations(email_address, zipcode, report_time, frequency, otp)
     return validation_result
 
 

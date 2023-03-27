@@ -10,3 +10,5 @@ class UserData(BaseConfig):
 user_data = UserData()
 if not os.path.isdir("images"):
     os.mkdir("images")
+
+otp_dict = {}
