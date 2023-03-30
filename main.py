@@ -2,6 +2,7 @@ import os
 import random
 import string
 import time
+from threading import Thread
 
 import gmailconnector
 import uvicorn
@@ -52,7 +53,7 @@ def validations(email_address: EmailStr, zipcode: PositiveInt, report_time: str,
         if otp == otp_dict.get(email_address):
             logger.info("%s passed OTP validation", email_address)
         else:
-            raise HTTPException(status_code=401, detail="unauthorized")
+            raise HTTPException(status_code=401, detail="unauthorized or timed out")
     else:
         if send_otp(email_address):
             logger.info("OTP has been sent")
@@ -73,13 +74,22 @@ def send_otp(email_address: EmailStr):
     rand_str = ''.join(random.choices(string.ascii_uppercase + string.digits, k=5))
     response = email_object.send_email(recipient=email_address, subject='WeatherTogether - Verify your email',
                                        sender="WeatherTogether",
-                                       body=f"Your WeatherTogether verification code is:{rand_str}")
+                                       body=f"Your WeatherTogether verification code is:{rand_str}\n\n"
+                                            "This verification code will expire in 5 minutes.")
     if response.ok:
         logger.info("One time verification passcode has been sent to %s", email_address)
         otp_dict[email_address] = rand_str
+        Thread(target=delete_otp, args=(email_address,)).start()
         return True
     else:
         logger.error(response.body)
+
+
+def delete_otp(email_address: EmailStr):
+    time.sleep(300)
+    # otp_dict.pop(email_address)
+    # del otp_dict[email_address]
+    otp_dict[email_address] = None
 
 
 @app.post("/create-alert")
