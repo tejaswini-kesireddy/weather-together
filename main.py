@@ -95,7 +95,7 @@ async def create_alert(email_address: EmailStr, zipcode: PositiveInt, report_tim
 
 
 @app.post("/publish-info")
-async def publish_info(email_address: EmailStr, description: str, image: UploadFile = None):
+async def publish_info(email_address: EmailStr, description: str, otp: str = None, image: UploadFile = None):
     """This function gets the information for crowd sourcing"""
     with db.connection:
         cursor = db.connection.cursor()
@@ -107,6 +107,18 @@ async def publish_info(email_address: EmailStr, description: str, image: UploadF
         raise HTTPException(status_code=400, detail="email not found in db: %s" % email_address)
     if not description:
         raise HTTPException(status_code=404, detail="description is required")
+    if otp:
+        if otp == otp_dict.get(email_address):
+            logger.info("%s passed OTP validation", email_address)
+        else:
+            raise HTTPException(status_code=401, detail="unauthorized")
+    else:
+        if send_otp(email_address):
+            logger.info("OTP has been sent")
+            return {"OK": "Please enter the OTP"}
+        else:
+            raise HTTPException(status_code=500, detail="failed to send otp")
+
     if image:
         extension = image.filename.split(".")[-1]
         # todo: create a thread to send notifications
