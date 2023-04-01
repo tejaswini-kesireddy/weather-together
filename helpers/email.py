@@ -6,16 +6,17 @@ from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 import os
 from datetime import datetime, timezone
-import modules.database
+#import modules.database
+
 
 #from modules.database import  get_existing_info
 #
 
-def send_daily_email():
+def send_daily_email(zip):
     
     subject='Here is Todays Weather Forecast'
     today = datetime.now(timezone.utc).strftime('%d-%m-%y')#get todays date
-    hourly_weather, todays_description, todays_low, todays_high,alerts =weather.get_weather("65807", mock=False)# get the weather
+    hourly_weather, todays_description, todays_low, todays_high,alerts =weather.get_weather(zip, mock=False)# get the weather
     body="<p><span style='font-weight:bold; color:blue'> Today "+str(today)+"</span> "+todays_description+" with a high of "+ str(todays_high)+" °F and a low of "+str(todays_low)+" °F"
     
     for x in hourly_weather:
@@ -30,11 +31,11 @@ def send_daily_email():
     
     
     
-def send_alerts():
+def send_alerts(zip):
     #hourly_weather, todays_description, todays_low, todays_high,
     body=""
     subject=""
-    hourly_weather, todays_description, todays_low, todays_high,alerts = weather.get_weather("54605", mock=False)
+    hourly_weather, todays_description, todays_low, todays_high,alerts = weather.get_weather(zip, mock=False)
     if alerts:
         print(alerts)
         for alert in alerts:
@@ -53,7 +54,7 @@ def send_email(subject, body):
     me = os.environ.get("EMAIL_USERNAME")
     passw = os.environ.get("EMAIL_PASSWORD") 
     #****enter your email or emails in to******************
-    to=['']#TODO:get saved email address
+    to=['jasoncariolano@gmail.com']#TODO:get saved email address
        
     em = MIMEMultipart()
     em['From']=me
@@ -69,5 +70,5 @@ def send_email(subject, body):
     
     
 if __name__ == "__main__":
-    #send_daily_email()
-    send_alerts()
+    send_daily_email("65807")
+    send_alerts("65807") #54605 has severe weather today
