@@ -10,6 +10,7 @@ url = "https://api.openweathermap.org/data/2.5/onecall?lat={lat}&lon={lon}&appid
 
 
 def get_coordinates(zipcode: PositiveInt):
+    geolocator = Nominatim(user_agent="WeatherTogether")
     location = geolocator.geocode(str(zipcode), country_codes="us")
     if location:
         return location.latitude, location.longitude
