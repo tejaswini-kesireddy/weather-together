@@ -13,5 +13,9 @@ db = DB()
 
 
 def get_existing_info():
-    data = db.connection.execute("SELECT * FROM container")
-    print(data.fetchall())
+    with db.connection:
+        cursor = db.connection.cursor()
+        retrieve = cursor.execute(
+            "SELECT * FROM container"
+        ).fetchall()
+    return retrieve

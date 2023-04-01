@@ -11,14 +11,13 @@ from fastapi.responses import RedirectResponse
 from pydantic import EmailStr, PositiveInt
 
 from helpers import validators, log
+from helpers.location import find_distance
 from modules.accessories import user_data, otp_dict
-from modules.database import db
+from modules.database import db, get_existing_info
 
 app = FastAPI()
 logger = log.logger
 
-# SMTP port numbers: 25, 465, 587, 2525
-# Most reliable: 587, 2525
 email_object = gmailconnector.SendEmail(gmail_user=os.environ.get("EMAIL_USERNAME"),
                                         gmail_pass=os.environ.get("EMAIL_PASSWORD"))
 
@@ -63,7 +62,7 @@ def validations(email_address: EmailStr, zipcode: PositiveInt, report_time: str,
     with db.connection:
         cursor = db.connection.cursor()
         cursor.execute(
-            f"INSERT INTO container {user_data.user_input} VALUES (?,?,?,?);",
+            f"INSERT or REPLACE INTO container {user_data.user_input} VALUES (?,?,?,?);",
             (email_address, zipcode, report_time, frequency)
         )
         db.connection.commit()
@@ -96,6 +95,7 @@ def delete_otp(email_address: EmailStr):
 async def create_alert(email_address: EmailStr, zipcode: PositiveInt, report_time: str,
                        frequency: int = None, otp: str = None):
     """This function gets the information from the user."""
+    # todo: get confirmation from user if user is participating in crowd sourcing
     logger.info("Email: %s", email_address)
     logger.info("ZIP Code: %s", zipcode)
     logger.info("Report Time: %s", report_time)
@@ -136,7 +136,39 @@ async def publish_info(email_address: EmailStr, description: str, otp: str = Non
         file_name = os.path.join("images", str(int(time.time())) + "." + extension)
         with open(file_name, "wb") as file:
             file.write(await image.read())
+    else:
+        file_name = ""
+    crowd_cast(65807, description, file_name)
+    # todo: remove hardcoded values and get zip from users
     raise HTTPException(status_code=200, detail="email found: %s" % email_address)
+
+
+def crowd_cast(zipcode: PositiveInt, description, filename):
+    # todo: send notifications only to people who agreed for crowdsourcing
+    db_data = get_existing_info()
+    notify_zipcodes = []
+    for each_entry in db_data:
+        user_zip = each_entry[1]
+        if user_zip not in notify_zipcodes:
+            if find_distance(user_zip, zipcode) <= 3:
+                notify_zipcodes.append(user_zip)
+    notified_users = []
+    # todo: make sure to check both email and zipcode
+    for each_entry in db_data:
+        user_zip = each_entry[1]
+        if user_zip in notify_zipcodes:
+            user_email = each_entry[0]
+            if user_email in notified_users:
+                continue
+            if filename:
+                response = email_object.send_email(subject="Weather Alert", sender="WeatherTogether", body=description,
+                                                   recipient=user_email, attachment=filename)
+            else:
+                response = email_object.send_email(subject="Weather Alert", sender="WeatherTogether", body=description,
+                                                   recipient=user_email)
+            if response.ok:
+                notified_users.append(user_email)
+            logger.info(response.body)
 
 
 if __name__ == "__main__":

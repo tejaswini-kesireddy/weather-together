@@ -2,20 +2,20 @@ import os
 from datetime import datetime, timezone
 import requests
 from geopy.geocoders import Nominatim
+from pydantic import PositiveInt
 
 #from helpers.log import logger
 
 url = "https://api.openweathermap.org/data/2.5/onecall?lat={lat}&lon={lon}&appid={apikey}"
 
 
-def get_coordinates(zipcode: str):
-    geolocator = Nominatim(user_agent="WeatherTogether")
-    location = geolocator.geocode(zipcode, country_codes="us")
+def get_coordinates(zipcode: PositiveInt):
+    location = geolocator.geocode(str(zipcode), country_codes="us")
     if location:
-        return location.address, location.latitude, location.longitude
+        return location.latitude, location.longitude
 
 
-def get_weather(zipcode: str, mock: bool = False):
+def get_weather(zipcode: PositiveInt, mock: bool = False):
     if mock:
         return {
             'coord':
@@ -28,7 +28,7 @@ def get_weather(zipcode: str, mock: bool = False):
             'sys': {'type': 2, 'id': 2080868, 'country': 'US', 'sunrise': 1679918794, 'sunset': 1679963434},
             'timezone': -18000, 'id': 4409896, 'name': 'Springfield', 'cod': 200, }
     if location_details := get_coordinates(zipcode):
-        address, latitude, longitude = location_details
+        latitude, longitude = location_details
     else:
         #logger.error("Failed to get location co-ordinations for the zipcode %s", zipcode)
         return
