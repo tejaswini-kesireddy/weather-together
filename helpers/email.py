@@ -12,7 +12,7 @@ from datetime import datetime, timezone
 #from modules.database import  get_existing_info
 #
 
-def send_daily_email(zip):
+def send_daily_email(zip, recipiant):
     
     subject='Here is Todays Weather Forecast'
     today = datetime.now(timezone.utc).strftime('%d-%m-%y')#get todays date
@@ -26,12 +26,12 @@ def send_daily_email(zip):
             else:
                 body += "<span style='font-weight:normal; color:black'> "+str(s) +" </span>"
         body +="</p>"  
-    send_email(subject, body)
+    send_email(subject, body, recipiant)
    
     
     
     
-def send_alerts(zip):
+def send_alerts(zip, recipiant):
     #hourly_weather, todays_description, todays_low, todays_high,
     body=""
     subject=""
@@ -48,14 +48,14 @@ def send_alerts(zip):
             
             body+= "<p style='font-weight:bold;color:black;'>"+event+":</br>"+alert_description+"</p>"
             body+=sender
-        send_email(subject, body)
+        send_email(subject, body, recipiant)
 
-def send_email(subject, body):
+def send_email(subject, body, recipiant):
     me = os.environ.get("EMAIL_USERNAME")
     passw = os.environ.get("EMAIL_PASSWORD") 
-    #****enter your email or emails in to******************
-    to=['jasoncariolano@gmail.com']#TODO:get saved email address
-       
+    
+    to=recipiant
+    
     em = MIMEMultipart()
     em['From']=me
     em['TO']=', '.join(to)
@@ -70,5 +70,7 @@ def send_email(subject, body):
     
     
 if __name__ == "__main__":
-    send_daily_email("65807")
-    send_alerts("65807") #54605 has severe weather today
+    #****enter your email or emails in to test for now****#
+    recipiant =['jasoncariolano@gmail.com']
+    send_daily_email("65807", recipiant)
+    send_alerts("65807", recipiant)
