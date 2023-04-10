@@ -4,7 +4,7 @@ from pydantic import BaseConfig
 
 
 class UserData(BaseConfig):
-    user_input = ('email_address', 'zipcode', 'report_time', 'frequency')
+    user_input = ('email_address', 'zipcode', 'report_time', 'frequency', 'crowdsource_button')
 
 
 user_data = UserData()

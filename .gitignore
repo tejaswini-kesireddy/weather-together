@@ -4,3 +4,4 @@ venv
 logs
 datastore.db
 images
+test.py

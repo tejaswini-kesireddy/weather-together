@@ -34,7 +34,8 @@ async def health():
     return {"OK": True}
 
 
-def validations(email_address: EmailStr, zipcode: PositiveInt, report_time: str, frequency: int, otp: str):
+def validations(email_address: EmailStr, zipcode: PositiveInt, report_time: str, frequency: int, otp: str,
+                accept_crowd_sourcing: bool):
     """This function validates all the input parameters."""
     zip_valid = validators.validate_zip(zipcode)
     if not zip_valid:
@@ -62,8 +63,8 @@ def validations(email_address: EmailStr, zipcode: PositiveInt, report_time: str,
     with db.connection:
         cursor = db.connection.cursor()
         cursor.execute(
-            f"INSERT or REPLACE INTO container {user_data.user_input} VALUES (?,?,?,?);",
-            (email_address, zipcode, report_time, frequency)
+            f"INSERT or REPLACE INTO container {user_data.user_input} VALUES (?,?,?,?,?);",
+            (email_address, zipcode, report_time, frequency, accept_crowd_sourcing)
         )
         db.connection.commit()
     return {"OK": "Entry is added to the database successfully"}
@@ -93,19 +94,19 @@ def delete_otp(email_address: EmailStr):
 
 @app.post("/create-alert")
 async def create_alert(email_address: EmailStr, zipcode: PositiveInt, report_time: str,
-                       frequency: int = None, otp: str = None):
+                       frequency: int = None, otp: str = None, accept_crowd_sourcing: bool = True):
     """This function gets the information from the user."""
-    # todo: get confirmation from user if user is participating in crowd sourcing
     logger.info("Email: %s", email_address)
     logger.info("ZIP Code: %s", zipcode)
     logger.info("Report Time: %s", report_time)
     logger.info("Frequency %s", frequency)
-    validation_result = validations(email_address, zipcode, report_time, frequency, otp)
+    validation_result = validations(email_address, zipcode, report_time, frequency, otp, accept_crowd_sourcing)
     return validation_result
 
 
 @app.post("/publish-info")
-async def publish_info(email_address: EmailStr, description: str, otp: str = None, image: UploadFile = None):
+async def publish_info(email_address: EmailStr, description: str, zipcode: PositiveInt, otp: str = None,
+                       image: UploadFile = None):
     """This function gets the information for crowd sourcing"""
     with db.connection:
         cursor = db.connection.cursor()
@@ -132,19 +133,17 @@ async def publish_info(email_address: EmailStr, description: str, otp: str = Non
     if image:
         extension = image.filename.split(".")[-1]
         # todo: create a thread to send notifications
-        #   notifications should contain a user ID, if needed to report
+        # todo: notifications should contain a user ID, if needed to report
         file_name = os.path.join("images", str(int(time.time())) + "." + extension)
         with open(file_name, "wb") as file:
             file.write(await image.read())
     else:
         file_name = ""
-    crowd_cast(65807, description, file_name)
-    # todo: remove hardcoded values and get zip from users
+    crowd_cast(zipcode, description, file_name)
     raise HTTPException(status_code=200, detail="email found: %s" % email_address)
 
 
 def crowd_cast(zipcode: PositiveInt, description, filename):
-    # todo: send notifications only to people who agreed for crowdsourcing
     db_data = get_existing_info()
     notify_zipcodes = []
     for each_entry in db_data:
@@ -153,12 +152,12 @@ def crowd_cast(zipcode: PositiveInt, description, filename):
             if find_distance(user_zip, zipcode) <= 3:
                 notify_zipcodes.append(user_zip)
     notified_users = []
-    # todo: make sure to check both email and zipcode
     for each_entry in db_data:
         user_zip = each_entry[1]
         if user_zip in notify_zipcodes:
             user_email = each_entry[0]
-            if user_email in notified_users:
+            acceptance = each_entry[-1]
+            if not acceptance or user_email in notified_users:
                 continue
             if filename:
                 response = email_object.send_email(subject="Weather Alert", sender="WeatherTogether", body=description,
