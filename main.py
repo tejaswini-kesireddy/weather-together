@@ -12,7 +12,7 @@ from pydantic import EmailStr, PositiveInt
 
 from helpers import validators, log
 from helpers.location import find_distance
-from modules.accessories import user_data, otp_dict
+from modules.accessories import user_data, otp_dict, CreateAlert, PublishInfo
 from modules.database import db, get_existing_info
 
 app = FastAPI()
@@ -93,38 +93,37 @@ def delete_otp(email_address: EmailStr):
 
 
 @app.post("/create-alert")
-async def create_alert(email_address: EmailStr, zipcode: PositiveInt, report_time: str,
-                       frequency: int = None, otp: str = None, accept_crowd_sourcing: bool = True):
+async def create_alert(userdata: CreateAlert):
     """This function gets the information from the user."""
-    logger.info("Email: %s", email_address)
-    logger.info("ZIP Code: %s", zipcode)
-    logger.info("Report Time: %s", report_time)
-    logger.info("Frequency %s", frequency)
-    validation_result = validations(email_address, zipcode, report_time, frequency, otp, accept_crowd_sourcing)
+    logger.info("Email: %s", userdata.email_address)
+    logger.info("ZIP Code: %s", userdata.zipcode)
+    logger.info("Report Time: %s", userdata.report_time)
+    logger.info("Frequency %s", userdata.frequency)
+    validation_result = validations(userdata.email_address, userdata.zipcode, userdata.report_time,
+                                    userdata.frequency, userdata.otp, userdata.accept_crowd_sourcing)
     return validation_result
 
 
 @app.post("/publish-info")
-async def publish_info(email_address: EmailStr, description: str, zipcode: PositiveInt, otp: str = None,
-                       image: UploadFile = None):
+async def publish_info(userdata: PublishInfo, image: UploadFile = None):
     """This function gets the information for crowd sourcing"""
     with db.connection:
         cursor = db.connection.cursor()
         retrieve = cursor.execute(
-            "SELECT * FROM container WHERE email_address=?;", (email_address,)
+            "SELECT * FROM container WHERE email_address=?;", (userdata.email_address,)
         ).fetchall()
 
     if not retrieve:
-        raise HTTPException(status_code=400, detail="email not found in db: %s" % email_address)
-    if not description:
+        raise HTTPException(status_code=400, detail="email not found in db: %s" % userdata.email_address)
+    if not userdata.description:
         raise HTTPException(status_code=404, detail="description is required")
-    if otp:
-        if otp == otp_dict.get(email_address):
-            logger.info("%s passed OTP validation", email_address)
+    if userdata.otp:
+        if userdata.otp == otp_dict.get(userdata.email_address):
+            logger.info("%s passed OTP validation", userdata.email_address)
         else:
             raise HTTPException(status_code=401, detail="unauthorized")
     else:
-        if send_otp(email_address):
+        if send_otp(userdata.email_address):
             logger.info("OTP has been sent")
             return {"OK": "Please enter the OTP"}
         else:
@@ -139,8 +138,8 @@ async def publish_info(email_address: EmailStr, description: str, zipcode: Posit
             file.write(await image.read())
     else:
         file_name = ""
-    crowd_cast(zipcode, description, file_name)
-    raise HTTPException(status_code=200, detail="email found: %s" % email_address)
+    crowd_cast(userdata.zipcode, userdata.description, file_name)
+    raise HTTPException(status_code=200, detail="email found: %s" % userdata.email_address)
 
 
 def crowd_cast(zipcode: PositiveInt, description, filename):

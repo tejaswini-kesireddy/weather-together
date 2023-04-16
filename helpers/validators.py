@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from gmailconnector.validator import validate_email
+import gmailconnector
 from pydantic import PositiveInt
 
 from helpers.log import logger
@@ -12,7 +12,7 @@ def validate_zip(zipcode: PositiveInt):
 
 
 def validate_email_address(email_address):
-    response = validate_email(email_address)
+    response = gmailconnector.validate_email(email_address)
     if response.ok is False:
         logger.error(response.body)
         return response.body
