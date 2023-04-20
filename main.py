@@ -6,8 +6,9 @@ from threading import Thread
 
 import gmailconnector
 import uvicorn
-from fastapi import FastAPI, HTTPException, UploadFile
-from fastapi.responses import RedirectResponse
+from fastapi import FastAPI, HTTPException, UploadFile, Request
+from fastapi.responses import RedirectResponse, HTMLResponse
+from fastapi.templating import Jinja2Templates
 from pydantic import EmailStr, PositiveInt
 
 from helpers import validators, log
@@ -15,17 +16,25 @@ from helpers.location import find_distance
 from modules.accessories import user_data, otp_dict, CreateAlert, PublishInfo
 from modules.database import db, get_existing_info
 
+
 app = FastAPI()
 logger = log.logger
+templates = Jinja2Templates(directory="UI")
 
 email_object = gmailconnector.SendEmail(gmail_user=os.environ.get("EMAIL_USERNAME"),
                                         gmail_pass=os.environ.get("EMAIL_PASSWORD"))
 
 
+
+
 @app.get("/", include_in_schema=False)
 async def root():
-    """This function redirects root page to docs."""
-    return RedirectResponse("/docs")
+    """This function redirects root page to docs.""" # now redirects to login
+    return RedirectResponse("/login")
+
+@app.get("/login", response_class=HTMLResponse) #will need to pip install jinja2
+async def login_page(request: Request):
+    return templates.TemplateResponse("loginPage.html",{"request":request})
 
 
 @app.get("/health")
@@ -170,4 +179,6 @@ def crowd_cast(zipcode: PositiveInt, description, filename):
 
 
 if __name__ == "__main__":
+
     uvicorn.run("main:app", port=5000, log_level="info")
+
