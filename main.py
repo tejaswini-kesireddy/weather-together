@@ -25,8 +25,6 @@ email_object = gmailconnector.SendEmail(gmail_user=os.environ.get("EMAIL_USERNAM
                                         gmail_pass=os.environ.get("EMAIL_PASSWORD"))
 
 
-
-
 @app.get("/", include_in_schema=False)
 async def root():
     """This function redirects root page to docs.""" # now redirects to login
@@ -36,6 +34,9 @@ async def root():
 async def login_page(request: Request):
     return templates.TemplateResponse("loginPage.html",{"request":request})
 
+@app.get("/signup", response_class=HTMLResponse) #will need to pip install jinja2
+async def login_page(request: Request):
+    return templates.TemplateResponse("signupPage.html",{"request":request})
 
 @app.get("/health")
 async def health():
