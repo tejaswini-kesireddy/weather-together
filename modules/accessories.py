@@ -1,16 +1,16 @@
 import os
-from typing import Optional
 
 from pydantic import BaseConfig, BaseModel, EmailStr, PositiveInt
 
 
 class UserData(BaseConfig):
-    user_input = ('email_address', 'zipcode', 'report_time', 'frequency', 'crowdsource_button')
+    user_input = ('userid', 'email_address', 'password', 'zipcode', 'report_time', 'frequency', 'crowdsource_button')
 
 
 class CreateAlert(BaseModel):
     email_address: EmailStr
     zipcode: PositiveInt
+    password: str
     report_time: str
     frequency: int = None
     otp: str = None
@@ -19,9 +19,9 @@ class CreateAlert(BaseModel):
 
 class PublishInfo(BaseModel):
     email_address: EmailStr
-    description: str
+    password: str
     zipcode: PositiveInt
-    otp: Optional[str]
+    description: str
 
 
 user_data = UserData()

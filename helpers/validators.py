@@ -11,8 +11,19 @@ def validate_zip(zipcode: PositiveInt):
         return True
 
 
+def validate_pw(password):
+    symbols = ["$", "#", "&", "@"]
+    if not 12 > len(password) >= 6:
+        return False
+    if not any((f for f in symbols if f in password)):
+        return False
+    if not any((f for f in password if f.isdigit())):
+        return False
+    return True
+
+
 def validate_email_address(email_address):
-    response = gmailconnector.validate_email(email_address)
+    response = gmailconnector.validate_email(email_address, smtp_check=False)
     if response.ok is False:
         logger.error(response.body)
         return response.body
