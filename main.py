@@ -4,8 +4,9 @@ import time
 from multiprocessing import Process
 
 import uvicorn
-from fastapi import FastAPI, HTTPException, UploadFile, Form
-from fastapi.responses import RedirectResponse
+from fastapi import FastAPI, HTTPException, UploadFile, Form, Request
+from fastapi.responses import RedirectResponse, HTMLResponse
+from fastapi.templating import Jinja2Templates
 from pydantic import PositiveInt, EmailStr
 
 from helpers import log, support
@@ -14,6 +15,7 @@ from modules.database import db
 
 app = FastAPI()
 logger = log.logger
+templates = Jinja2Templates(directory="UI")
 
 
 @app.get("/", include_in_schema=False)
@@ -102,6 +104,11 @@ async def unsubscribe(email_address: EmailStr = Form(...), password: str = Form(
                 raise HTTPException(status_code=200, detail="CrowdSourcing has been disabled")
         else:
             raise HTTPException(status_code=401, detail="invalid email address or password")
+
+
+@app.get("/signup", response_class=HTMLResponse)
+async def login_page(request: Request):
+    return templates.TemplateResponse("signupPage.html", {"request": request})
 
 
 if __name__ == "__main__":
