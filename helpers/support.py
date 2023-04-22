@@ -2,6 +2,7 @@ import os
 import random
 import string
 import time
+from datetime import datetime
 from threading import Thread
 
 import gmailconnector
@@ -57,13 +58,23 @@ def validations(email_address: EmailStr, password: str, zipcode: PositiveInt, re
             (userid, email_address, password, zipcode, report_time, frequency, accept_crowd_sourcing)
         )
         db.connection.commit()
-    # todo: send subscription confirmation to user
+    response = email_object.send_email(recipient=email_address,
+                                       subject=f"Welcome to WeatherTogether {datetime.now().strftime('%c')}",
+                                       sender="WeatherTogether",
+                                       body="Hi,\n\n"
+                                            "Thank you for signing up to WeatherTogether. You will now be able to "
+                                            f"receive daily weather information at your requested time: {report_time}, "
+                                            f"and receive severe weather alerts.\nYou can also login to the "
+                                            "WeatherTogether dashboard to broadcast weather alerts.")
+    if response.ok:
+        logger.info("Subscription confirmation has been sent to %s", email_address)
     return {"OK": "Entry is added to the database successfully"}
 
 
 def send_otp(email_address: EmailStr):
     rand_str = ''.join(random.choices(string.ascii_uppercase + string.digits, k=5))
-    response = email_object.send_email(recipient=email_address, subject='WeatherTogether - Verify your email',
+    response = email_object.send_email(recipient=email_address,
+                                       subject=f"WeatherTogether - Verify your email {datetime.now().strftime('%c')}",
                                        sender="WeatherTogether",
                                        body="Hi,\n\n"
                                             "We received a signup request for WeatherTogether Application.\n\n"
@@ -86,31 +97,38 @@ def delete_otp(email_address: EmailStr):
     otp_dict[email_address] = None
 
 
-def crowd_cast(zipcode: PositiveInt, description, filename, sender_id):
+def crowd_cast(zipcode: PositiveInt, description, filename, report_url):
     db_data = get_existing_info()
+    logger.info("User data gathered from DB")
     notify_zipcodes = []
     for each_entry in db_data:
-        user_zip = each_entry[1]
+        user_zip = each_entry[3]
         if user_zip not in notify_zipcodes:
             if find_distance(user_zip, zipcode) <= 3:
                 notify_zipcodes.append(user_zip)
+    logger.info("No. of zipcodes to notify: %d", len(notify_zipcodes))
     notified_users = []
     for each_entry in db_data:
-        user_zip = each_entry[1]
+        user_zip = each_entry[3]
         if user_zip in notify_zipcodes:
-            user_email = each_entry[0]
+            user_id = each_entry[0]
+            user_email = each_entry[1]
             acceptance = each_entry[-1]
             if not acceptance or user_email in notified_users:
                 continue
             # todo: create a thread to send notifications
+            logger.info("Broadcasting to %s", user_email)
+            report_url += str(user_id)
             reformed = "Someone near by casted this weather information\n\n\n" + description + \
                        "\n\n\nIf you think this information is inappropriate, please report using the following link:" \
-                       f"\n{sender_id}"  # todo: replace with API link to report spam
+                       f"\n{report_url}"
             if filename:
-                response = email_object.send_email(subject="Weather Alert", sender="WeatherTogether", body=reformed,
+                response = email_object.send_email(subject=f"Weather Alert {datetime.now().strftime('%c')}",
+                                                   sender="WeatherTogether", body=reformed,
                                                    recipient=user_email, attachment=filename)
             else:
-                response = email_object.send_email(subject="Weather Alert", sender="WeatherTogether", body=reformed,
+                response = email_object.send_email(subject=f"Weather Alert {datetime.now().strftime('%c')}",
+                                                   sender="WeatherTogether", body=reformed,
                                                    recipient=user_email)
             if response.ok:
                 notified_users.append(user_email)

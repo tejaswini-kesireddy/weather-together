@@ -5,3 +5,4 @@ gmail-connector
 python-multipart
 requests
 Jinja2
+PyYaml

@@ -1,16 +1,18 @@
+import json
 import os
 import secrets
 import time
+from datetime import datetime
 from multiprocessing import Process
 
 import uvicorn
+import yaml
 from fastapi import FastAPI, HTTPException, UploadFile, Form, Request
 from fastapi.responses import RedirectResponse, HTMLResponse
 from fastapi.templating import Jinja2Templates
 from pydantic import PositiveInt, EmailStr
 
 from helpers import log, support
-from modules.accessories import CreateAlert
 from modules.database import db
 
 app = FastAPI()
@@ -31,21 +33,22 @@ async def health():
 
 
 @app.post("/create-alert")
-async def create_alert(userdata: CreateAlert):
+async def create_alert(email_address: EmailStr = Form(...), password: str = Form(...), zipcode: PositiveInt = Form(...),
+                       report_time: str = Form(...), frequency: int = Form(None), otp: str = Form(None),
+                       accept_crowd_sourcing: bool = Form(True)):
     """This function gets the information from the user."""
-    logger.info("Email: %s", userdata.email_address)
-    logger.info("ZIP Code: %s", userdata.zipcode)
-    logger.info("Report Time: %s", userdata.report_time)
-    logger.info("Frequency %s", userdata.frequency)
-    validation_result = support.validations(userdata.email_address, userdata.password, userdata.zipcode,
-                                            userdata.report_time, userdata.frequency, userdata.otp,
-                                            userdata.accept_crowd_sourcing)
+    logger.info("Email: %s", email_address)
+    logger.info("ZIP Code: %s", zipcode)
+    logger.info("Report Time: %s", report_time)
+    logger.info("Frequency %s", frequency)
+    validation_result = support.validations(email_address, password, zipcode,
+                                            report_time, frequency, otp, accept_crowd_sourcing)
     return validation_result
 
 
 @app.post("/publish-info")
-async def publish_info(email_address: str = Form(...), password: str = Form(...), description: str = Form(...),
-                       zipcode: PositiveInt = Form(...), image: UploadFile = None):
+async def publish_info(request: Request, email_address: str = Form(...), password: str = Form(...),
+                       description: str = Form(...), zipcode: PositiveInt = Form(...), image: UploadFile = None):
     """This function gets the information for crowdsourcing"""
     with db.connection:
         cursor = db.connection.cursor()
@@ -65,16 +68,16 @@ async def publish_info(email_address: str = Form(...), password: str = Form(...)
     if not description:
         raise HTTPException(status_code=404, detail="description is required")
     # todo: encrypt and decrypt password
-    #  generate a link to report spam
     if image:
         extension = image.filename.split(".")[-1]
-        # todo: notifications should contain a user ID, if needed to report
         file_name = os.path.join("images", str(int(time.time())) + "." + extension)
         with open(file_name, "wb") as file:
             file.write(await image.read())
     else:
         file_name = ""
-    Process(target=support.crowd_cast, args=(zipcode, description, file_name, sender_id)).start()
+    report_url = f"{request.base_url}report/{sender_id}/"
+    logger.info("Starting bg process for crowdcasting")
+    Process(target=support.crowd_cast, args=(zipcode, description, file_name, report_url)).start()
     raise HTTPException(status_code=200, detail="email found: %s" % email_address)
 
 
@@ -104,6 +107,54 @@ async def unsubscribe(email_address: EmailStr = Form(...), password: str = Form(
                 raise HTTPException(status_code=200, detail="CrowdSourcing has been disabled")
         else:
             raise HTTPException(status_code=401, detail="invalid email address or password")
+
+
+@app.get("/report/{block_id}/{user_id}")
+async def report_spam(block_id: str, user_id: str):
+    block_id = int(block_id)
+    user_id = int(user_id)
+    if os.path.isfile("blocked.json"):
+        with open("blocked.json") as file:
+            blocked_already = json.load(file)
+        if block_id in blocked_already:
+            raise HTTPException(status_code=200, detail="reported user is already blocked")
+    if os.path.isfile("report_ids.yaml"):
+        with open("report_ids.yaml") as file:
+            data = yaml.load(file, Loader=yaml.FullLoader)
+    else:
+        data = {}
+    if data.get(block_id):
+        if user_id in data[block_id]:
+            logger.warning("duplicate report on %d by %d", block_id, user_id)
+        else:
+            data[block_id].append(user_id)
+    else:
+        data[block_id] = [user_id]
+    if len(data[block_id]) > 2:
+        if os.path.isfile("blocked.json"):
+            with open("blocked.json") as file:
+                blocked = json.load(file)
+        else:
+            blocked = []
+        blocked.append(block_id)
+        with open("blocked.json", "w") as file:
+            json.dump(blocked, file)
+        del data[block_id]
+        with db.connection:
+            cursor = db.connection.cursor()
+            retrieve = cursor.execute(
+                "SELECT email_address FROM container WHERE userid=?;", (block_id,)
+            ).fetchone()
+        support.email_object.send_email(recipient=retrieve[0],
+                                        subject=f"WeatherTogether - Report received {datetime.now().strftime('%c')}",
+                                        sender="WeatherTogether",
+                                        body="\n\nDue to multiple reports, you have been blocked from WeatherTogether."
+                                             "\n\nYou will no longer be able to receive daily weather reports, "
+                                             "severe weather alerts nor will you have the ability to participate in "
+                                             "crowd casting")
+    with open("report_ids.yaml", "w") as file:
+        yaml.dump(data=data, stream=file, indent=4)
+    return {"OK": "User ID reported"}
 
 
 @app.get("/signup", response_class=HTMLResponse)
