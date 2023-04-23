@@ -12,7 +12,8 @@ from fastapi.responses import RedirectResponse, HTMLResponse
 from fastapi.templating import Jinja2Templates
 from pydantic import PositiveInt, EmailStr
 
-from helpers import log, support
+from helpers import log, support, tokenizer
+from modules.accessories import constants
 from modules.database import db
 
 app = FastAPI()
@@ -61,7 +62,10 @@ async def publish_info(request: Request, email_address: str = Form(...), passwor
         raise HTTPException(status_code=404, detail=f"{email_address} is currently not "
                                                     "subscribed to WeatherTogether")
     sender_id = retrieve[0]
-    if secrets.compare_digest(password, retrieve[1]):
+    if sender_id in support.get_blocked():
+        raise HTTPException(status_code=403, detail='user blocked')
+    stored_pw = tokenizer.hex_decode(retrieve[1])
+    if secrets.compare_digest(password, stored_pw):
         logger.info("'%s' with user id '%d' has been authenticated", email_address, sender_id)
     else:
         raise HTTPException(status_code=401, detail="invalid email address or password")
@@ -69,7 +73,6 @@ async def publish_info(request: Request, email_address: str = Form(...), passwor
         raise HTTPException(status_code=400, detail="email not found in db: %s" % email_address)
     if not description:
         raise HTTPException(status_code=404, detail="description is required")
-    # todo: encrypt and decrypt password
     if image:
         extension = image.filename.split(".")[-1]
         file_name = os.path.join("images", str(int(time.time())) + "." + extension)
@@ -115,13 +118,13 @@ async def unsubscribe(email_address: EmailStr = Form(...), password: str = Form(
 async def report_spam(block_id: str, user_id: str):
     block_id = int(block_id)
     user_id = int(user_id)
-    if os.path.isfile("blocked.json"):
-        with open("blocked.json") as file:
+    if os.path.isfile(constants.blocked_file):
+        with open(constants.blocked_file) as file:
             blocked_already = json.load(file)
         if block_id in blocked_already:
             raise HTTPException(status_code=200, detail="reported user is already blocked")
-    if os.path.isfile("report_ids.yaml"):
-        with open("report_ids.yaml") as file:
+    if os.path.isfile(constants.report_file):
+        with open(constants.report_file) as file:
             data = yaml.load(file, Loader=yaml.FullLoader)
     else:
         data = {}
@@ -132,14 +135,14 @@ async def report_spam(block_id: str, user_id: str):
             data[block_id].append(user_id)
     else:
         data[block_id] = [user_id]
-    if len(data[block_id]) > 2:
-        if os.path.isfile("blocked.json"):
-            with open("blocked.json") as file:
+    if len(data[block_id]) >= constants.report_threshold:
+        if os.path.isfile(constants.blocked_file):
+            with open(constants.blocked_file) as file:
                 blocked = json.load(file)
         else:
             blocked = []
         blocked.append(block_id)
-        with open("blocked.json", "w") as file:
+        with open(constants.blocked_file, "w") as file:
             json.dump(blocked, file)
         del data[block_id]
         with db.connection:
@@ -154,7 +157,7 @@ async def report_spam(block_id: str, user_id: str):
                                              "\n\nYou will no longer be able to receive daily weather reports, "
                                              "severe weather alerts nor will you have the ability to participate in "
                                              "crowd casting")
-    with open("report_ids.yaml", "w") as file:
+    with open(constants.report_file, "w") as file:
         yaml.dump(data=data, stream=file, indent=4)
     return {"OK": "User ID reported"}
 
