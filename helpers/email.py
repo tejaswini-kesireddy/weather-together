@@ -13,7 +13,6 @@ from datetime import datetime, timezone
 #
 
 def send_daily_email(zip, recipiant):
-    
     subject='Here is Todays Weather Forecast'
     today = datetime.now(timezone.utc).strftime('%d-%m-%y')#get todays date
     hourly_weather, todays_description, todays_low, todays_high,alerts =weather.get_weather(zip, mock=False)# get the weather
@@ -27,8 +26,6 @@ def send_daily_email(zip, recipiant):
                 body += "<span style='font-weight:normal; color:black'> "+str(s) +" </span>"
         body +="</p>"  
     send_email(subject, body, recipiant)
-   
-    
     
     
 def send_alerts(zip, recipiant):
@@ -69,8 +66,8 @@ def send_email(subject, body, recipiant):
         
     
     
-if __name__ == "__main__":
+#if __name__ == "__main__":
     #****enter your email or emails in to test for now****#
-    recipiant =['jasoncariolano@gmail.com']
-    send_daily_email("65807", recipiant)
-    send_alerts("65807", recipiant)
+    #recipiant =['jasoncariolano@gmail.com']
+    #send_daily_email("65807", recipiant)
+    #send_alerts("65807", recipiant)

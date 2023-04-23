@@ -23,7 +23,7 @@ templates = Jinja2Templates(directory="UI")
 @app.get("/", include_in_schema=False)
 async def root():
     """This function redirects root page to docs."""
-    return RedirectResponse("/docs")
+    return RedirectResponse("/signup")####change to docs when needed
 
 
 @app.get("/health")
@@ -33,16 +33,18 @@ async def health():
 
 
 @app.post("/create-alert")
-async def create_alert(email_address: EmailStr = Form(...), password: str = Form(...), zipcode: PositiveInt = Form(...),
+async def create_alert(request: Request, email_address: EmailStr = Form(...), password: str = Form(...), zipcode: PositiveInt = Form(...),
                        report_time: str = Form(...), frequency: int = Form(None), otp: str = Form(None),
                        accept_crowd_sourcing: bool = Form(True)):
+   
     """This function gets the information from the user."""
-    logger.info("Email: %s", email_address)
-    logger.info("ZIP Code: %s", zipcode)
-    logger.info("Report Time: %s", report_time)
-    logger.info("Frequency %s", frequency)
+    print(logger.info("Email: %s", email_address))
+    print(logger.info("ZIP Code: %s", zipcode))
+    print(logger.info("Report Time: %s", report_time))
+    print(logger.info("Frequency %s", frequency))
     validation_result = support.validations(email_address, password, zipcode,
                                             report_time, frequency, otp, accept_crowd_sourcing)
+    
     return validation_result
 
 
@@ -160,7 +162,15 @@ async def report_spam(block_id: str, user_id: str):
 @app.get("/signup", response_class=HTMLResponse)
 async def login_page(request: Request):
     return templates.TemplateResponse("signupPage.html", {"request": request})
-
+@app.get("/confirmation", response_class=HTMLResponse)
+async def confirmation_page(request: Request):
+    return templates.TemplateResponse("confirmation.html", {"request": request})
+@app.get("/login", response_class=HTMLResponse)
+async def login_page(request: Request):
+    return templates.TemplateResponse("loginPage.html", {"request": request})
+@app.get("/weather", response_class=HTMLResponse)
+async def confirmation_page(request: Request):
+    return templates.TemplateResponse("weather.html", {"request": request})
 
 if __name__ == "__main__":
     uvicorn.run("main:app", port=5000, log_level="info")
