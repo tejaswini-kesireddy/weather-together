@@ -158,6 +158,11 @@
           const now = new Date();
           const time = now.toLocaleTimeString('en-US', {hour12: false, hour: '2-digit', minute: '2-digit'}).replace(':', '');
           
+          localStorage.setItem("email",email)
+          localStorage.setItem("password",password)
+          localStorage.setItem("zipcode",zipcode)
+          localStorage.setItem("time",time)
+          
           console.log(time);
           console.log(email, zipcode, password);
           $.ajax({

@@ -72,12 +72,12 @@
                     <!-- Div for email address -->
                     <div class="form-group">
                       <label for="code">Please enter in the 5 character code sent to your E-mail:</label>
-                      <input type="text" class="form-control" id="code" required>
+                      <input type="text" class="form-control" id="code"name ="code" required>
                       <div class="invalid-feedback">
                         Please provide a valid code.
                       </div>
                     </div>
-                    <button type="submit" class="btn btn-primary btn-block">Submit</button>
+                    <button type="submit" class="btn btn-primary btn-block"id="myBtn">Submit</button>
                   </form>
             </div>
         </div>
@@ -104,7 +104,39 @@
                     }, false)
                 })
         })() //end funciton
+        document.getElementById("myBtn").addEventListener("click", submitForm);
+        function submitForm(){
+          event.preventDefault();
+          const form = document.querySelector('.needs-validation');
+          const formData = new FormData(form);
+          const time = localStorage.getItem("time")
+          const email= localStorage.getItem("email")
+          const zipcode=localStorage.getItem("zipcode") 
+          const password=localStorage.getItem("password")
+          const otpass = formData.get("code").toString()
+          console.log(otpass)
+          console.log(time);
+          console.log(email, zipcode, password);
+          $.ajax({
+            type: 'POST',
+            url: "/create-alert",
+            data: {
+              email_address: email,
+              password: password,
+              zipcode: zipcode, //pasword1@
+              report_time: time,
+              otp: otpass,
+              accept_crowd_sourcing: true},
+              success: function(response) {
+                console.log(response);  
+                window.location.href = "/weather";
+              },
+              error: function(error) {
+                console.log(error);
+              }
+          });
 
+        }
     </script>
 
     <!-- Optional JavaScript -->
@@ -112,5 +144,6 @@
     <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/popper.js@1.14.3/dist/umd/popper.min.js" integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.1.3/dist/js/bootstrap.min.js" integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy" crossorigin="anonymous"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   </body>
 </html>

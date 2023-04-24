@@ -39,10 +39,10 @@ async def create_alert(request: Request, email_address: EmailStr = Form(...), pa
                        accept_crowd_sourcing: bool = Form(True)):
    
     """This function gets the information from the user."""
-    print(logger.info("Email: %s", email_address))
-    print(logger.info("ZIP Code: %s", zipcode))
-    print(logger.info("Report Time: %s", report_time))
-    print(logger.info("Frequency %s", frequency))
+    logger.info("Email: %s", email_address)
+    logger.info("ZIP Code: %s", zipcode)
+    logger.info("Report Time: %s", report_time)
+    logger.info("Frequency %s", frequency)
     validation_result = support.validations(email_address, password, zipcode,
                                             report_time, frequency, otp, accept_crowd_sourcing)
     
