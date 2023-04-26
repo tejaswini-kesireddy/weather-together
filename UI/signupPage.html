@@ -45,6 +45,11 @@
                   <a class="nav-link" href="report.html">Report Weather</a>
                 </li>
               </ul>
+              <!-- Search box, this can be deleted if we are not using this feature -->
+              <form class="form-inline my-2 my-lg-0">
+                <input class="form-control mr-sm-2" type="search" placeholder="Search City" aria-label="Search">
+                <button class="btn btn-outline-success my-2 my-sm-0" type="submit">Search</button>
+              </form>
               <ul class="navbar-nav ">
                 <!-- Login Page Link -->
                 <li class="nav-item ">
@@ -71,37 +76,37 @@
                       <label for="email">Email address:</label>
                       <input type="email" class="form-control" id="email" name="email" aria-describedby="emailHelp" placeholder="Enter email" required>
                       <small id="emailHelp" class="form-text text-muted">We'll never share your email with anyone else.</small>
-                      <div class="invalid-feedback">
+                        <div class="invalid-feedback">
                         Please provide a valid email.
-                      </div>
+                        </div>
                     </div>
                     <!-- Div for password -->
                     <div class="form-group">
                       <label for="password">Password:</label>
                       <input type="password" class="form-control" id="password" name="password" placeholder="Password" required>
-                      <div class="invalid-feedback">
+                        <div class="invalid-feedback">
                         Please provide a valid password.
-                      </div>
+                        </div>
                     </div>
                     <!-- Div for zip code -->
                     <div class="form-group">
-                      <label for="zip">Zip Code: </label>
-                      <input type="text" class="form-control" id="zip" name="zip" placeholder="Zip Code" required>
-                      <div class="invalid-feedback">
-                          Please provide a valid zip.
-                      </div>
-                  </div>
+                        <label for="zip">Zip Code: </label>
+                        <input type="text" class="form-control" id="zip" name="zip" placeholder="Zip Code" required>
+                        <div class="invalid-feedback">
+                            Please provide a valid zip.
+                        </div>
+                    </div>
                   <!-- Div for Report Time -->
-                  <div class="form-group">
+                    <div class="form-group">
                     <label for="report_time">What time would you like to receive alerts daily?</label>
                     <input type="time" class="form-control" id="report_time" name="report_time" required>
-                    <div class="invalid-feedback">
+                      <div class="invalid-feedback">
                       Please provide a time.
+                      </div>
                     </div>
-                  </div>
                   <!-- Div for frequency-->
                   <!--TODO in here, the value tag on the "option"s can be what the API needs-->
-                  <div class="form-group">
+                    <div class="form-group">
                     <label for="frequency">How often would you like to receive alerts?</label>
                     <select name="frequency" id="frequency">
                       <option value="5">5 minutes</option>
@@ -111,7 +116,7 @@
                       <option value="25">25 minutes</option>
                       <option value="30">30 minutes</option>
                     </select>
-                  </div>
+                    </div>
                     <!-- Div to click to signup for email alerts, although users are using our app to do this so could be removed. -->
                     <div class="form-group form-check">
                       <input type="checkbox" class="form-check-input" id="exampleCheck1">
@@ -156,15 +161,19 @@
           const email = formData.get("email");
           const zipcode= parseInt(formData.get("zip"));
           const password= formData.get("password");
-          const now = new Date();
-          const time = now.toLocaleTimeString('en-US', {hour12: false, hour: '2-digit', minute: '2-digit'}).replace(':', '');
+          const time = parseInt(formData.get("report_time").replace(":", ""))
+          
+          const frequency = formData.get("frequency")
+          //const now = new Date();
+          //const time = now.toLocaleTimeString('en-US', {hour12: false, hour: '2-digit', minute: '2-digit'}).replace(':', '');
           
           localStorage.setItem("email",email)
           localStorage.setItem("password",password)
           localStorage.setItem("zipcode",zipcode)
           localStorage.setItem("time",time)
+          localStorage.setItem("frequency", frequency)
           
-          console.log(time);
+          console.log(time, frequency);
           console.log(email, zipcode, password);
           $.ajax({
             type: 'POST',
@@ -174,6 +183,7 @@
               password: password,
               zipcode: zipcode, //pasword1@
               report_time: time,
+              frequency: frequency,
               accept_crowd_sourcing: true},
               success: function(response) {
                 console.log(response);  
