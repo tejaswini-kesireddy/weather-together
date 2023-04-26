@@ -72,14 +72,16 @@
           event.preventDefault();
           const form = document.querySelector('.needs-validation');
           const formData = new FormData(form);
-          const time = localStorage.getItem("time")
+          const time = parseInt(localStorage.getItem("time"))
           const email= localStorage.getItem("email")
-          const zipcode=localStorage.getItem("zipcode") 
+          const zipcode=parseInt(localStorage.getItem("zipcode")) 
           const password=localStorage.getItem("password")
+          const frequency=parseInt(localStorage.getItem("frequency"))
           const otpass = formData.get("code").toString()
           console.log(otpass)
-          console.log(time);
+          console.log(time, frequency);
           console.log(email, zipcode, password);
+          if (frequency===0){
           $.ajax({
             type: 'POST',
             url: "/create-alert",
@@ -88,6 +90,7 @@
               password: password,
               zipcode: zipcode, //pasword1@
               report_time: time,
+              //frequency: frequency,
               otp: otpass,
               accept_crowd_sourcing: true},
               success: function(response) {
@@ -98,6 +101,27 @@
                 console.log(error);
               }
           });
+        }else{
+          $.ajax({
+            type: 'POST',
+            url: "/create-alert",
+            data: {
+              email_address: email,
+              password: password,
+              zipcode: zipcode, //pasword1@
+              report_time: time,
+              frequency: frequency,
+              otp: otpass,
+              accept_crowd_sourcing: true},
+              success: function(response) {
+                console.log(response);  
+                window.location.href = "/weather";
+              },
+              error: function(error) {
+                console.log(error);
+              }
+          });
+        }
 
         }
     </script>

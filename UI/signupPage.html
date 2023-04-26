@@ -97,8 +97,8 @@
                         </div>
                     </div>
                   <!-- Div for Report Time -->
-                    <div class="form-group">
-                    <label for="report_time">What time would you like to receive alerts daily?</label>
+                  <div class="form-group">
+                    <label for="report_time">What time would you like to receive a weather report daily?</label>
                     <input type="time" class="form-control" id="report_time" name="report_time" required>
                       <div class="invalid-feedback">
                       Please provide a time.
@@ -109,6 +109,7 @@
                     <div class="form-group">
                     <label for="frequency">How often would you like to receive alerts?</label>
                     <select name="frequency" id="frequency">
+                      <option value="0">None</option>
                       <option value="5">5 minutes</option>
                       <option value="10">10 minutes</option>
                       <option value="15">15 minutes</option>
@@ -163,10 +164,12 @@
           const password= formData.get("password");
           const time = parseInt(formData.get("report_time").replace(":", ""))
           
-          const frequency = formData.get("frequency")
+          var frequency = parseInt(formData.get("frequency"))
           //const now = new Date();
           //const time = now.toLocaleTimeString('en-US', {hour12: false, hour: '2-digit', minute: '2-digit'}).replace(':', '');
-          
+          //if (frequency===0){
+          //  frequency=null;
+          //}
           localStorage.setItem("email",email)
           localStorage.setItem("password",password)
           localStorage.setItem("zipcode",zipcode)
@@ -175,6 +178,28 @@
           
           console.log(time, frequency);
           console.log(email, zipcode, password);
+          if (frequency===0){
+            $.ajax({
+            type: 'POST',
+            url: "/create-alert",
+            data: {
+              email_address: email,
+              password: password,
+              zipcode: zipcode, //pasword1@
+              report_time: time,
+              //frequency: frequency,
+              accept_crowd_sourcing: true},
+              success: function(response) {
+                console.log(response);  
+                window.location.href = "/confirmation";
+              },
+              error: function(error) {
+                console.log(error);
+              }
+          });
+          }else{
+
+          
           $.ajax({
             type: 'POST',
             url: "/create-alert",
@@ -193,9 +218,10 @@
                 console.log(error);
               }
           });
+          }
 
         
-      }
+        }
     </script>
     <!-- Optional JavaScript -->
     <!-- jQuery first, then Popper.js, then Bootstrap JS -->
