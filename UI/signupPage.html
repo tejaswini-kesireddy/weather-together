@@ -12,7 +12,7 @@
     <title>Sign Up</title>
     <style>
         html, body{
-            background-color: cornflowerblue;
+            background-color: gray;
         }
         .form-container{
             background-color: white;
@@ -65,30 +65,7 @@
             <div class="col-12 col-sm-4 m-auto">
                 <form class="form-container needs-validation" novalidate>
                     <legend class="text-center">Sign Up</legend>
-                    <!-- Div for first name -->
-                    <div class="form-group">
-                        <label for="firstName">First Name: </label>
-                        <input type="text" class="form-control" id="firstName" placeholder="First Name" required>
-                        <div class="invalid-feedback">
-                            Please provide a valid first name.
-                        </div>
-                    </div>
-                    <!-- Div for last name -->
-                    <div class="form-group">
-                        <label for="lastName">Last Name: </label>
-                        <input type="text" class="form-control" id="lastName" placeholder="Last Name" required>
-                        <div class="invalid-feedback">
-                            Please provide a valid last name.
-                        </div>
-                    </div>
-                    <!-- Div for zip code -->
-                    <div class="form-group">
-                        <label for="zip">Zip Code: </label>
-                        <input type="text" class="form-control" id="zip" name="zip" placeholder="Zip Code" required>
-                        <div class="invalid-feedback">
-                            Please provide a valid zip.
-                        </div>
-                    </div>
+                    
                     <!-- Div for email address -->
                     <div class="form-group">
                       <label for="email">Email address:</label>
@@ -106,10 +83,39 @@
                         Please provide a valid password.
                       </div>
                     </div>
+                    <!-- Div for zip code -->
+                    <div class="form-group">
+                      <label for="zip">Zip Code: </label>
+                      <input type="text" class="form-control" id="zip" name="zip" placeholder="Zip Code" required>
+                      <div class="invalid-feedback">
+                          Please provide a valid zip.
+                      </div>
+                  </div>
+                  <!-- Div for Report Time -->
+                  <div class="form-group">
+                    <label for="report_time">What time would you like to receive alerts daily?</label>
+                    <input type="time" class="form-control" id="report_time" name="report_time" required>
+                    <div class="invalid-feedback">
+                      Please provide a time.
+                    </div>
+                  </div>
+                  <!-- Div for frequency-->
+                  <!--TODO in here, the value tag on the "option"s can be what the API needs-->
+                  <div class="form-group">
+                    <label for="frequency">How often would you like to receive alerts?</label>
+                    <select name="frequency" id="frequency">
+                      <option value="5">5 minutes</option>
+                      <option value="10">10 minutes</option>
+                      <option value="15">15 minutes</option>
+                      <option value="20">20 minutes</option>
+                      <option value="25">25 minutes</option>
+                      <option value="30">30 minutes</option>
+                    </select>
+                  </div>
                     <!-- Div to click to signup for email alerts, although users are using our app to do this so could be removed. -->
                     <div class="form-group form-check">
                       <input type="checkbox" class="form-check-input" id="exampleCheck1">
-                      <label class="form-check-label" for="exampleCheck1">I would like to receive E-mail alerts.</label>
+                      <label class="form-check-label" for="exampleCheck1">Allow crowd-casting?</label>
                     </div>
                     <button type="submit" class="btn btn-primary btn-block" id="myBtn">Submit</button>
                   </form>
