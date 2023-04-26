@@ -119,8 +119,9 @@
               <!-- Div for frequency-->
               <!--TODO in here, the value tag on the "option"s can be what the API needs-->
               <div class="form-group">
-                <label for="frequency">How often would you like to receive alerts?</label><br>
+                <label for="frequency">How often would you like to receive weather report daily?</label><br>
                 <select name="frequency" id="frequency">
+                  <option value="0">None</option>
                   <option value="5">5 minutes</option>
                   <option value="10">10 minutes</option>
                   <option value="15">15 minutes</option>
@@ -141,6 +142,71 @@
         </div>
         
       </div>
+
+      <script>
+
+        //JavaScript function to validate the form.
+        (function () {
+            'use strict'
+
+            // Fetch all the forms we want to apply custom Bootstrap validation styles to
+            var forms = document.querySelectorAll('.needs-validation')
+
+            // Loop over them and prevent submission
+            Array.prototype.slice.call(forms)
+                .forEach(function (form) {
+                    form.addEventListener('submit', function (event) {
+                        if (!form.checkValidity()) {
+                            event.preventDefault()
+                            event.stopPropagation()
+                        }
+                        form.classList.add('was-validated')
+                    }, false)
+                })
+        })() //end function
+
+
+        //JS function to change page once submit button is clicked, this can be changed later to 
+        //a more proper way where when we submit the form it is sent to a POST and redirected to the new page :)
+        document.getElementById("myBtn").addEventListener("click", submitForm);
+        function submitForm(){
+          event.preventDefault();
+          const form = document.querySelector('.needs-validation');
+          const formData = new FormData(form);
+          const email = formData.get("email");
+          const zipcode= parseInt(formData.get("zip"));
+          const password= formData.get("password");
+          const now = new Date();
+          const time = now.toLocaleTimeString('en-US', {hour12: false, hour: '2-digit', minute: '2-digit'}).replace(':', '');
+          
+          localStorage.setItem("email",email)
+          localStorage.setItem("password",password)
+          localStorage.setItem("zipcode",zipcode)
+          localStorage.setItem("time",time)
+          
+          console.log(time);
+          console.log(email, zipcode, password);
+          $.ajax({
+            type: 'POST',
+            url: "/create-alert",
+            data: {
+              email_address: email,
+              password: password,
+              zipcode: zipcode, //pasword1@
+              report_time: time,
+              accept_crowd_sourcing: true},
+              success: function(response) {
+                console.log(response);  
+                window.location.href = "/confirmation";
+              },
+              error: function(error) {
+                console.log(error);
+              }
+          });
+
+        
+      }
+    </script>
 
     <!-- Optional JavaScript -->
     <!-- jQuery first, then Popper.js, then Bootstrap JS -->

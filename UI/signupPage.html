@@ -93,7 +93,7 @@
                   </div>
                   <!-- Div for Report Time -->
                   <div class="form-group">
-                    <label for="report_time">What time would you like to receive alerts daily?</label>
+                    <label for="report_time">What time would you like to receive a weather report daily?</label>
                     <input type="time" class="form-control" id="report_time" name="report_time" required>
                     <div class="invalid-feedback">
                       Please provide a time.
@@ -104,6 +104,7 @@
                   <div class="form-group">
                     <label for="frequency">How often would you like to receive alerts?</label>
                     <select name="frequency" id="frequency">
+                      <option value="0">None</option>
                       <option value="5">5 minutes</option>
                       <option value="10">10 minutes</option>
                       <option value="15">15 minutes</option>
