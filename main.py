@@ -48,17 +48,20 @@ async def create_alert(request: Request, email_address: EmailStr = Form(...), pa
 
     return validation_result
 
-
+#crowdcast
 @app.post("/publish-info")
-async def publish_info(request: Request, email_address: str = Form(...), password: str = Form(...),
+async def publish_info(request: Request, email_address: EmailStr = Form(...), password: str = Form(...),
                        description: str = Form(...), zipcode: PositiveInt = Form(...), image: UploadFile = None):
     """This function gets the information for crowdsourcing"""
+    logger.info("Email: %s", email_address) 
+    logger.info("ZIP Code: %s", zipcode)
     with db.connection:
         cursor = db.connection.cursor()
         retrieve = cursor.execute(
             "SELECT userid, password FROM container WHERE email_address=?;", (email_address,)
         ).fetchone()
     if not retrieve:
+        logger.info("not retrived 404")
         raise HTTPException(status_code=404, detail=f"{email_address} is currently not "
                                                     "subscribed to WeatherTogether")
     sender_id = retrieve[0]
@@ -80,11 +83,11 @@ async def publish_info(request: Request, email_address: str = Form(...), passwor
             file.write(await image.read())
     else:
         file_name = ""
-    report_url = f"{request.base_url}report/{sender_id}/"
+    report_url = f"{request.base_url}report/{sender_id}/"  
     logger.info("Starting bg process for crowdcasting")
     Process(target=support.crowd_cast, args=(zipcode, description, file_name, report_url)).start()
     raise HTTPException(status_code=200, detail="email found: %s" % email_address)
-
+    
 
 @app.delete(path="/unsubscribe")
 async def unsubscribe(email_address: EmailStr = Form(...), password: str = Form(...), everything: bool = False):
@@ -160,6 +163,7 @@ async def report_spam(block_id: str, user_id: str):
     with open(constants.report_file, "w") as file:
         yaml.dump(data=data, stream=file, indent=4)
     return {"OK": "User ID reported"}
+
 
 
 @app.get("/signup", response_class=HTMLResponse)

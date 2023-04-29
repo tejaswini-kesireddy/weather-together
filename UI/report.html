@@ -67,7 +67,7 @@
                     <!-- Div for Zip Code-->
                     <div class="form-group">
                       <label for="">Zip Code:</label>
-                      <input type="text" class="form-control" id="zip" placeholder="Zip Code" required>
+                      <input type="text" class="form-control" id="zip" name="zip" placeholder="Zip Code" required>
                       <div class="invalid-feedback">
                         Please provide a valid zipcode.
                       </div>
@@ -75,7 +75,7 @@
                     <!-- Div for Message -->
                     <div class="form-group">
                         <label for="message">Message:</label>
-                        <textarea class="form-control" id="message" rows="3"></textarea required>
+                        <textarea class="form-control" id="message" name="message"rows="3"></textarea required>
                         <div class="invalid-feedback">
                           Please provide input.
                         </div>
@@ -85,7 +85,7 @@
                         <label for="file">Image: </label>
                         <input type="file" id="file" name="file" required>
                     </div>
-                    <button type="submit" class="btn btn-primary btn-block">Submit</button>
+                    <button type="submit" class="btn btn-primary btn-block"id="myBtn">Submit</button>
                   </form>
             </div>
         </div>
@@ -112,7 +112,47 @@
                     }, false)
                 })
         })() //end funciton
+        document.getElementById("myBtn").addEventListener("click", submitForm);
+        function submitForm(){
+          event.preventDefault();
+          const form = document.querySelector('.needs-validation');
+          const formData = new FormData(form);
+          const email= localStorage.getItem("email")
+          const password=localStorage.getItem("password")
+          const message= formData.get("message").toString()
+          const zipcode= parseInt(formData.get("zip"))
+          var photo = document.getElementById('file');
+          
+          console.log(email, zipcode, password, photo);
+          
+          const ajaxData = new FormData();
+          ajaxData.append('email_address', email);
+          ajaxData.append('password', password);
+          ajaxData.append('description', message);
+          ajaxData.append('zipcode', zipcode);
+          if (photo.files.length > 0){// check if there is a file
+            //console.log("hit")
+            photo= formData.get("file")
+            ajaxData.append('image', photo);
+          }
 
+          $.ajax({
+              type: 'POST',
+              url: "/publish-info",
+              data: ajaxData,
+              contentType: false,
+              processData: false,
+              success: function(response) {
+                  console.log(response);  
+                  window.location.href = "/reportweather";
+              },
+              error: function(error) {
+                  console.log(error);
+              }
+          });
+        
+
+        }
     </script>
 
     <!-- Optional JavaScript -->
@@ -122,5 +162,6 @@
     <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/popper.js@1.14.3/dist/umd/popper.min.js" integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.1.3/dist/js/bootstrap.min.js" integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy" crossorigin="anonymous"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   </body>
 </html>
