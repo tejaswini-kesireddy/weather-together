@@ -9,145 +9,125 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.3.1/dist/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
 
     <title>Weather Together</title>
-
+    <link rel="icon" type="image/x-icon" href="weatherTogether.jpg">
     <style>
-      html, body{
-            background-color: gray;
-            margin-bottom: 50px;
-        }
-      #myBtn{
-        width: revert;
+      .container-fluid{
+        padding: 0px;
+        margin: 0px;
       }
-      #title{
-        font-family: impact, sans-serif;
-        font-size: 100px;
-        text-align: center;
+      #design{
+        height: 100vh;
+        background-color: black;
+        
+        overflow: hidden;
+        margin: auto;
+      }
+      #text{
+        color: lightblue;
+        padding: 0px;
+        margin-left: 10%;
+        margin-right: 10%;
+        font-family: andale mono;
         
       }
-      #home{
-        background-color: white;
-            border: 1px solid gainsboro;
-            
-            font-size: 20px;
-            border: 1px solid gainsboro;
-            padding: 30px 60px;
-            margin-top: 20%;
-            border-radius: 5px;
+      #homeIcon{
+        width: 500px;
+        display: block;
+        margin-left: 15%;
+        margin-right: auto;
+        margin-top: 60px;
       }
+      #formSide{
+        padding: 0px;
+        margin: 0px;
+        height: 100vh;
+      }
+      #login{
+        padding-top: 50px;
+        padding-bottom: 20px;
+      }
+      
     </style>
   </head>
   <body>
-    <!-- Navbar -->
-    <nav class="navbar navbar-expand-lg navbar-light bg-light" id="navbar">
-        <a class="navbar-brand" href="#">Weather Together</a>
-        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
-          <span class="navbar-toggler-icon"></span>
-        </button>
-      
-        <div class="collapse navbar-collapse" id="navbarSupportedContent">
-          <ul class="navbar-nav mr-auto">
-            <!-- Home Page Link -->
-            <li class="nav-item active">
-              <a class="nav-link" href="/weather">Home <span class="sr-only">(current)</span></a>
-            </li>
-            <!-- User Dashboard Link (only when logged in, this still needs to be validated)-->
-            <li class="nav-item">
-              <a class="nav-link" href="/reportweather">Report Weather</a>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link">Unsubscribe</a>
-            </li>
-          </ul>
-          <!-- Search box, this can be deleted if we are not using this feature -->
-          <form class="form-inline my-2 my-lg-0">
-            <input class="form-control mr-sm-2" type="search" placeholder="Search City" aria-label="Search">
-            <button class="btn btn-outline-success my-2 my-sm-0" type="submit">Search</button>
-          </form>
-          <ul class="navbar-nav ">
-            <!-- Login Page Link -->
-            <li class="nav-item">
-              <a class="nav-link" href="/login">LogIn<span class="sr-only">(current)</span></a>
-            </li>
-            <!-- SignUp Page Link -->
-            <li class="nav-item">
-              <a class="nav-link" href="/signup">SignUp</a>
-            </li>
-          </ul>
-        </div>
-      </nav>
-
-      <div class="container-fluid" >
-        <div class="row">
-          <div class="col-12 col-sm-10 m-auto pb-5">
-            <h1 id="title">WeatherTogether</h1>
-          </div>
-          <div class="row">
-          <div class="col-12 col-sm-6 m-auto p-3 p7-5" id="home">
+    <div class="container-fluid">
+      <div class="row">
+        <!--Design side-->
+        <div class="col-12 col-sm-7" id="design">
+            <img src="weatherTogetherHome.jpg" alt="home_Icon" id="homeIcon">
+            <div id="text">
+              <h5>
               Get real time updates on weather and posts from other people within your area. 
               You can notify others on serious weather condition by logging into our site 
-              and clicking on the "Report Weather" tab. Sign up below to receive daily weather alerts.
-            
-              <form class="form-container needs-validation pt-3" novalidate>
-                
-                <!-- Div for email address -->
-                <div class="form-group">
-                  <label for="email">Email address:</label>
-                  <input type="email" class="form-control" id="email" name="email" aria-describedby="emailHelp" placeholder="Enter email" required>
-                  <small id="emailHelp" class="form-text text-muted">We'll never share your email with anyone else.</small>
-                  <div class="invalid-feedback">
-                    Please provide a valid email.
-                  </div>
-                </div>
-                <!-- Div for password -->
-                <div class="form-group">
-                  <label for="password">Password:</label>
-                  <input type="password" class="form-control" id="password" name="password" placeholder="Password" required>
-                  <div class="invalid-feedback">
-                    Please provide a valid password.
-                  </div>
-                </div>
-                <!-- Div for zip code -->
-                <div class="form-group">
-                  <label for="zip">Zip Code: </label>
-                  <input type="text" class="form-control" id="zip" name="zip" placeholder="Zip Code" required>
-                  <div class="invalid-feedback">
-                      Please provide a valid zip.
-                  </div>
-              </div>
-              <!-- Div for Report Time -->
-              <div class="form-group">
-                <label for="report_time">What time would you like to receive a weather report daily?</label>
-                <input type="time" class="form-control" id="report_time" name="report_time" required>
-                <div class="invalid-feedback">
-                  Please provide a time.
-                </div>
-              </div>
-              <!-- Div for frequency-->
-              <!--TODO in here, the value tag on the "option"s can be what the API needs-->
-              <div class="form-group">
-                <label for="frequency">How often would you like to receive weather alerts?</label><br>
-                <select name="frequency" id="frequency">
-                  <option value="0">None</option>
-                  <option value="5">5 minutes</option>
-                  <option value="10">10 minutes</option>
-                  <option value="15">15 minutes</option>
-                  <option value="20">20 minutes</option>
-                  <option value="25">25 minutes</option>
-                  <option value="30">30 minutes</option>
-                </select>
-              </div>
-                <!-- Div to click to signup for email alerts, although users are using our app to do this so could be removed. -->
-                <div class="form-group form-check">
-                  <input type="checkbox" class="form-check-input" id="exampleCheck1">
-                  <label class="form-check-label" for="exampleCheck1">Allow crowd-casting?</label>
-                </div>
-                <button type="submit" class="btn btn-primary btn-block" id="myBtn">Sign Up</button>
-              </form>
-          </div>
-          </div>
+              and clicking on the "Report Weather" tab. Sign up here to receive daily weather alerts.
+            </h1>
+            </div>
         </div>
-        
+        <!--Form side-->
+        <div class="col-12 col-sm-5" id="formSide">
+          <form class="form-container needs-validation mt-5 p-5" id="form" novalidate>
+            <legend class="text-center">Sign Up</legend>
+            <!-- Div for email address -->
+            <div class="form-group">
+              <label for="email">Email address:</label>
+              <input type="email" class="form-control" id="email" name="email" aria-describedby="emailHelp" placeholder="Enter email" required>
+              <small id="emailHelp" class="form-text text-muted">We'll never share your email with anyone else.</small>
+              <div class="invalid-feedback">
+                Please provide a valid email.
+              </div>
+            </div>
+            <!-- Div for password -->
+            <div class="form-group">
+              <label for="password">Password:</label>
+              <input type="password" class="form-control" id="password" name="password" placeholder="Password" required>
+              <div class="invalid-feedback">
+                Please provide a valid password.
+              </div>
+            </div>
+            <!-- Div for zip code -->
+            <div class="form-group">
+              <label for="zip">Zip Code: </label>
+              <input type="text" class="form-control" id="zip" name="zip" placeholder="Zip Code" required>
+              <div class="invalid-feedback">
+                  Please provide a valid zip.
+              </div>
+          </div>
+          <!-- Div for Report Time -->
+          <div class="form-group">
+            <label for="report_time">What time would you like to receive a weather report daily?</label>
+            <input type="time" class="form-control" id="report_time" name="report_time" required>
+            <div class="invalid-feedback">
+              Please provide a time.
+            </div>
+          </div>
+          <!-- Div for frequency-->
+          <!--TODO in here, the value tag on the "option"s can be what the API needs-->
+          <div class="form-group">
+            <label for="frequency">How often would you like to receive weather alerts?</label><br>
+            <select name="frequency" id="frequency" required>
+              <option value="0">None</option>
+              <option value="5">5 minutes</option>
+              <option value="10">10 minutes</option>
+              <option value="15">15 minutes</option>
+              <option value="20">20 minutes</option>
+              <option value="25">25 minutes</option>
+              <option value="30">30 minutes</option>
+            </select>
+          </div>
+            <!-- Div to click to signup for email alerts, although users are using our app to do this so could be removed. -->
+            <div class="form-group form-check">
+              <input type="checkbox" class="form-check-input" id="exampleCheck1">
+              <label class="form-check-label" for="exampleCheck1">Allow crowd-casting?</label>
+            </div>
+            <button type="submit" class="btn btn-primary btn-block" id="myBtn">Sign Up</button>
+            <div id="login">
+              <small>Already have an account? <a href="/login"> Login Here </a> to report weather or unsubscribe from mailing.</small>
+            </div>
+          </form>
+        </div>
       </div>
+    </div>
+
 
       <script>
 
