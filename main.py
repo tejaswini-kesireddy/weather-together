@@ -186,9 +186,12 @@ async def confirmation_page(request: Request):
 
 
 @app.get("/reportweather", response_class=HTMLResponse)
-async def confirmation_page(request: Request):
+async def report_page(request: Request):
     return templates.TemplateResponse("report.html", {"request": request})
 
+@app.get("/userHomePage", response_class=HTMLResponse)
+async def home_page(request: Request):
+    return templates.TemplateResponse("userHomePage.html", {"request": request})
 
 if __name__ == "__main__":
     uvicorn.run("main:app", port=5000, log_level="info")
