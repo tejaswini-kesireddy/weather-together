@@ -162,17 +162,20 @@
           const email = formData.get("email");
           const zipcode= parseInt(formData.get("zip"));
           const password= formData.get("password");
-          const now = new Date();
-          const time = now.toLocaleTimeString('en-US', {hour12: false, hour: '2-digit', minute: '2-digit'}).replace(':', '');
+          const time = parseInt(formData.get("report_time").replace(":", ""))
+          
+          var frequency = parseInt(formData.get("frequency"))
           
           localStorage.setItem("email",email)
           localStorage.setItem("password",password)
           localStorage.setItem("zipcode",zipcode)
           localStorage.setItem("time",time)
+          localStorage.setItem("frequency", frequency)
           
-          console.log(time);
+          console.log(time, frequency);
           console.log(email, zipcode, password);
-          $.ajax({
+          if (frequency===0){
+            $.ajax({
             type: 'POST',
             url: "/create-alert",
             data: {
@@ -180,6 +183,7 @@
               password: password,
               zipcode: zipcode, //pasword1@
               report_time: time,
+              //frequency: frequency,
               accept_crowd_sourcing: true},
               success: function(response) {
                 console.log(response);  
@@ -189,9 +193,30 @@
                 console.log(error);
               }
           });
+          }else{
+          $.ajax({
+            type: 'POST',
+            url: "/create-alert",
+            data: {
+              email_address: email,
+              password: password,
+              zipcode: zipcode, //pasword1@
+              report_time: time,
+              frequency: frequency,
+              accept_crowd_sourcing: true},
+              success: function(response) {
+                console.log(response);  
+                window.location.href = "/confirmation";
+              },
+              error: function(error) {
+                console.log(error);
+              }
+          });
+          }
 
-        
+
       }
+
     </script>
 
     <!-- Optional JavaScript -->
