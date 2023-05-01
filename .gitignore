@@ -3,6 +3,7 @@ __pycache__
 venv
 logs
 datastore.db
+weather_file.json
 images
 test.py
 .env

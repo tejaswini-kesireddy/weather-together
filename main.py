@@ -87,7 +87,7 @@ async def publish_info(request: Request, email_address: EmailStr = Form(...), pa
     logger.info("Starting bg process for crowdcasting")
     Process(target=support.crowd_cast, args=(zipcode, description, file_name, report_url)).start()
     raise HTTPException(status_code=200, detail="email found: %s" % email_address)
-    
+
 
 @app.delete(path="/unsubscribe")
 async def unsubscribe(email_address: EmailStr = Form(...), password: str = Form(...), everything: bool = False):
