@@ -31,8 +31,11 @@ def validate_email_address(email_address):
 
 def validate_time(report_time):
     try:
-        datetime.strptime(report_time, "%H%M")
-        return True
+        return datetime.strptime(report_time, "%H%M")
+    except ValueError as error:
+        logger.error(error)
+    try:
+        return datetime.strptime(report_time, "%I:%M %p")
     except ValueError as error:
         logger.error(error)
 

@@ -1,9 +1,8 @@
-from datetime import datetime, timezone
-
 import requests
 from pydantic import PositiveInt
 
 from helpers.location import get_coordinates
+from helpers.log import logger
 from modules.accessories import env
 
 url = "https://api.openweathermap.org/data/2.5/onecall?lat={lat}&lon={lon}&appid={apikey}"
@@ -24,49 +23,10 @@ def get_weather(zipcode: PositiveInt, mock: bool = False):
     if location_details := get_coordinates(zipcode):
         latitude, longitude = location_details
     else:
-        # logger.error("Failed to get location co-ordinations for the zipcode %s", zipcode)
+        logger.error("Failed to get location co-ordinations for the zipcode %s", zipcode)
         return
     weather_url = url.format(lat=latitude, lon=longitude, apikey=env.weather_api)
-
     response = requests.get(url=weather_url)
-
-    w = response.json()
-    # print(w)
-    today = datetime.now(timezone.utc).strftime('%Y-%m-%d')
-    todays_weather = next((d for d in w["daily"] if datetime.utcfromtimestamp(d["dt"]).strftime('%Y-%m-%d') == today),
-                          None)
-    # print(todays_weather)
-    todays_description = todays_weather["weather"][0]["description"]
-    todays_high = round((float(todays_weather["temp"]["max"]) - 273.15) * (9 / 5) + 32)  # kelvin to faren
-    todays_low = round((float(todays_weather["temp"]["min"]) - 273.15) * (9 / 5) + 32)  # kelvin to faren
-
-    # print(todays_description, todays_high, todays_low)
-
-    current_temperature = w["current"]["temp"]
-    current_pressure = w["current"]["pressure"]
-    current_humidity = w["current"]["humidity"]
-
-    feels_like = w["current"]["feels_like"]
-
-    z = w["current"]["weather"]
-    weather_description = z[0]["description"]
-    current_temperatureF = round((float(current_temperature) - 273.15) * (9 / 5) + 32)  # kelvin to faren
-
-    hourly = w["hourly"]
-    hourly_weather = []
-    weather = []
-    for entry in hourly:
-        temp = entry["temp"]
-        tempf = round((float(temp) - 273.15) * (9 / 5) + 32)  # kelvin to faren
-        dt = datetime.fromtimestamp(int(entry["dt"]))
-        dt = str(dt.strftime("%I:%M %p"))
-        h_weather_description = entry["weather"][0]["description"]
-        weather = [dt, tempf, "°F with", h_weather_description]
-        hourly_weather.append(weather)
-
-    weather_alerts = w.get("alerts")
-
-    # print(weather_alerts)
-    # print( hourly_weather)
-    # print( current_temperatureF, weather_description)
-    return (hourly_weather, todays_description, todays_low, todays_high, weather_alerts)
+    if response.ok:
+        return response.json()
+    response.raise_for_status()

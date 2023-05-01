@@ -24,7 +24,7 @@ templates = Jinja2Templates(directory="UI")
 @app.get("/", include_in_schema=False)
 async def root():
     """This function redirects root page to docs."""
-    return RedirectResponse("/signup")
+    return RedirectResponse("/weather")
 
 
 @app.get("/health")
@@ -34,7 +34,7 @@ async def health():
 
 
 @app.post("/create-alert")
-async def create_alert(request: Request, email_address: EmailStr = Form(...), password: str = Form(...),
+async def create_alert(email_address: EmailStr = Form(...), password: str = Form(...),
                        zipcode: PositiveInt = Form(...),
                        report_time: str = Form(...), frequency: int = Form(None), otp: str = Form(None),
                        accept_crowd_sourcing: bool = Form(True)):
@@ -48,12 +48,12 @@ async def create_alert(request: Request, email_address: EmailStr = Form(...), pa
 
     return validation_result
 
-#crowdcast
+
 @app.post("/publish-info")
 async def publish_info(request: Request, email_address: EmailStr = Form(...), password: str = Form(...),
                        description: str = Form(...), zipcode: PositiveInt = Form(...), image: UploadFile = None):
     """This function gets the information for crowdsourcing"""
-    logger.info("Email: %s", email_address) 
+    logger.info("Email: %s", email_address)
     logger.info("ZIP Code: %s", zipcode)
     with db.connection:
         cursor = db.connection.cursor()
@@ -61,7 +61,7 @@ async def publish_info(request: Request, email_address: EmailStr = Form(...), pa
             "SELECT userid, password FROM container WHERE email_address=?;", (email_address,)
         ).fetchone()
     if not retrieve:
-        logger.info("not retrived 404")
+        logger.info("not retrieved 404")
         raise HTTPException(status_code=404, detail=f"{email_address} is currently not "
                                                     "subscribed to WeatherTogether")
     sender_id = retrieve[0]
@@ -165,10 +165,9 @@ async def report_spam(block_id: str, user_id: str):
     return {"OK": "User ID reported"}
 
 
-
 @app.get("/signup", response_class=HTMLResponse)
 async def login_page(request: Request):
-    return templates.TemplateResponse("signupPage.html", {"request": request})
+    return templates.TemplateResponse("weather.html", {"request": request})
 
 
 @app.get("/confirmation", response_class=HTMLResponse)
@@ -185,9 +184,11 @@ async def login_page(request: Request):
 async def confirmation_page(request: Request):
     return templates.TemplateResponse("weather.html", {"request": request})
 
+
 @app.get("/reportweather", response_class=HTMLResponse)
 async def confirmation_page(request: Request):
     return templates.TemplateResponse("report.html", {"request": request})
+
 
 if __name__ == "__main__":
     uvicorn.run("main:app", port=5000, log_level="info")

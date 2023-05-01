@@ -32,7 +32,9 @@ def validations(email_address: EmailStr, password: str, zipcode: PositiveInt, re
     if not pw_valid:
         raise HTTPException(status_code=400, detail="password is invalid: %s" % password)
     time_valid = validators.validate_time(report_time)
-    if not time_valid:
+    if time_valid:
+        report_time = time_valid.strftime("%I:%M %p")
+    else:
         raise HTTPException(status_code=400, detail="time is invalid: %s" % report_time)
     freq_valid = validators.validate_frequency(frequency)
     if not freq_valid:
@@ -54,6 +56,7 @@ def validations(email_address: EmailStr, password: str, zipcode: PositiveInt, re
             raise HTTPException(status_code=401, detail='unauthorized')
         for each in retrieve:
             if zipcode == each[3] and report_time == each[4]:
+                # todo: check if api is requesting pw again
                 raise HTTPException(status_code=409, detail='entry for this zipcode already exists in DB')
             if zipcode == each[3] and (report_time != each[4] or frequency != each[5]):
                 with db.connection:
@@ -84,14 +87,14 @@ def validations(email_address: EmailStr, password: str, zipcode: PositiveInt, re
             (userid, email_address, password, zipcode, report_time, frequency, accept_crowd_sourcing)
         )
         db.connection.commit()
-    report_time = datetime.strptime(report_time, "%H%M").strftime("%I:%M %p")
     response = email_object.send_email(recipient=email_address,
                                        subject=f"Welcome to WeatherTogether {datetime.now().strftime('%c')}",
                                        sender="WeatherTogether",
                                        body="Hi,\n\n"
-                                            "Thank you for signing up to WeatherTogether. You will now be able to "
+                                            "Thank you for signing up to WeatherTogether.\n\n"
+                                            "You will now be able to "
                                             f"receive daily weather information at your requested time: {report_time}, "
-                                            f"and receive severe weather alerts.\nYou can also login to the "
+                                            f"and receive severe weather alerts.\n\nYou can also login to the "
                                             "WeatherTogether dashboard to broadcast weather alerts.")
     if response.ok:
         logger.info("Subscription confirmation has been sent to %s", email_address)
