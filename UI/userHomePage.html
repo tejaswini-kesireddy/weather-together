@@ -146,6 +146,49 @@
         
 
         <!-- Optional JavaScript -->
+        <script>
+        document.getElementById("myBtn").addEventListener("click", submitForm);
+        function submitForm(){
+          event.preventDefault();
+          const form = document.querySelector('.needs-validation');
+          const formData = new FormData(form);
+          const email= localStorage.getItem("email")
+          const password=localStorage.getItem("password")
+          const message= formData.get("message").toString()
+          const zipcode= parseInt(formData.get("zip"))
+          var photo = document.getElementById('file');
+          
+          console.log(email, zipcode, password, photo);
+          
+          const ajaxData = new FormData();
+          ajaxData.append('email_address', email);
+          ajaxData.append('password', password);
+          ajaxData.append('description', message);
+          ajaxData.append('zipcode', zipcode);
+          if (photo.files.length > 0){// check if there is a file
+            //console.log("hit")
+            photo= formData.get("file")
+            ajaxData.append('image', photo);
+          }
+
+          $.ajax({
+              type: 'POST',
+              url: "/publish-info",
+              data: ajaxData,
+              contentType: false,
+              processData: false,
+              success: function(response) {
+                  console.log(response);  
+                  window.location.href = "/reportweather";
+              },
+              error: function(error) {
+                  console.log(error);
+              }
+          });
+        
+
+        }
+    </script>
     <!-- jQuery first, then Popper.js, then Bootstrap JS -->
     <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/popper.js@1.14.3/dist/umd/popper.min.js" integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49" crossorigin="anonymous"></script>
