@@ -115,7 +115,9 @@
               accept_crowd_sourcing: true},
               success: function(response) {
                 console.log(response);  
-                window.location.href = "/weather";
+                window.location.href = "/weather"; // take to login when point is made
+                //window.location.href = "/userHomePage"; // for now take to home page for testing
+
               },
               error: function(error) {
                 console.log(error);
