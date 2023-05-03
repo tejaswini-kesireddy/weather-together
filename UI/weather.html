@@ -46,6 +46,9 @@
         padding-top: 50px;
         padding-bottom: 20px;
       }
+      #verify{
+        margin-top: 40% !important;
+      }
       
     </style>
   </head>
@@ -65,6 +68,7 @@
         </div>
         <!--Form side-->
         <div class="col-12 col-sm-5" id="formSide">
+          <div id="signUp">
           <form class="form-container needs-validation mt-5 p-5" id="form" novalidate>
             <legend class="text-center">Sign Up</legend>
             <!-- Div for email address -->
@@ -119,20 +123,36 @@
               <input type="checkbox" class="form-check-input" id="exampleCheck1">
               <label class="form-check-label" for="exampleCheck1">Allow crowd-casting?</label>
             </div>
-            <button type="submit" class="btn btn-primary btn-block" id="myBtn">Sign Up</button>
+            <button type="submit" class="btn btn-primary btn-block" id="myBtn" data-toggle="modal" data-target="#verifyModal">Sign Up</button>
             <div id="login">
               <small>Already have an account? <a href="/login"> Login Here </a> to report weather or unsubscribe from mailing.</small>
             </div>
-          </form>
+            </form>
+            </div>
+            <!-- Verification Form -->
+            <div class="m-auto p-5" id="verify">
+              <form class="form-container needs-validation" novalidate>
+                <legend class="text-center">Verification</legend>
+                <!-- Div for Zip Code-->
+                <div class="form-group">
+                    <label for="">Please enter the 5 character code sent to your email:</label>
+                    <input type="text" class="form-control" id="zip" name="zip" placeholder="Zip Code" required>
+                    <div class="invalid-feedback">
+                        Please provide a valid code.
+                    </div>
+                  </div>
+                <button type="submit" class="btn btn-primary btn-block"id="myBtn">Submit</button>
+            </form>
+            </div>
+          
         </div>
       </div>
     </div>
 
-
       <script>
 
         //JavaScript function to validate the form.
-        (function () {
+        function formValidation () {
             'use strict'
 
             // Fetch all the forms we want to apply custom Bootstrap validation styles to
@@ -149,21 +169,39 @@
                         form.classList.add('was-validated')
                     }, false)
                 })
-        })() //end function
-
+        }//end function
+        var verify = document.getElementById("verify");
+        document.addEventListener("DOMContentLoaded", () => {
+          verify.style.display= 'none';
+          formValidation();
+        });
 
         //JS function to change page once submit button is clicked, this can be changed later to 
         //a more proper way where when we submit the form it is sent to a POST and redirected to the new page :)
         document.getElementById("myBtn").addEventListener("click", submitForm);
         function submitForm(){
           event.preventDefault();
+          formValidation();
           const form = document.querySelector('.needs-validation');
           const formData = new FormData(form);
           const email = formData.get("email");
           const zipcode= parseInt(formData.get("zip"));
           const password= formData.get("password");
           const time = parseInt(formData.get("report_time").replace(":", ""))
-          
+          var signUp = document.getElementById("signUp");
+          //var verify = document.getElementById("verify");
+          if(signUp.style.display !== 'none'){
+            signUp.style.display = 'none';
+            
+          }else{
+            signUp.style.display = 'block';
+            
+          }
+          if(verify.style.display !== 'block'){
+            verify.style.display = 'block';
+          }else{
+            verify.style.display = 'none';
+          }
           var frequency = parseInt(formData.get("frequency"))
           
           localStorage.setItem("email",email)
