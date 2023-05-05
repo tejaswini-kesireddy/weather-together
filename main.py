@@ -8,7 +8,7 @@ from multiprocessing import Process
 import uvicorn
 import yaml
 from fastapi import FastAPI, HTTPException, UploadFile, Form, Request
-from fastapi.responses import RedirectResponse, HTMLResponse
+from fastapi.responses import RedirectResponse, HTMLResponse, FileResponse
 from fastapi.templating import Jinja2Templates
 from pydantic import PositiveInt, EmailStr
 
@@ -19,6 +19,16 @@ from modules.database import db
 app = FastAPI()
 logger = log.logger
 templates = Jinja2Templates(directory="UI")
+
+
+@app.get("/images/{image_name}")
+async def images(image_name):
+    """This function is dedicated to serving images to the UI."""
+    img_path = os.path.join("UI", image_name)
+    if os.path.isfile(img_path):
+        return FileResponse(path=img_path)
+    else:
+        logger.error("%s is missing", img_path)
 
 
 @app.on_event(event_type="startup")
