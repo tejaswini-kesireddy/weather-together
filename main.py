@@ -12,13 +12,19 @@ from fastapi.responses import RedirectResponse, HTMLResponse
 from fastapi.templating import Jinja2Templates
 from pydantic import PositiveInt, EmailStr
 
-from helpers import log, support, tokenizer
+from helpers import log, support, tokenizer, bgtasks
 from modules.accessories import constants
 from modules.database import db
 
 app = FastAPI()
 logger = log.logger
 templates = Jinja2Templates(directory="UI")
+
+
+@app.on_event(event_type="startup")
+async def startup():
+    logger.info("Initiating background task")
+    Process(target=bgtasks.background_task).start()
 
 
 @app.get("/", include_in_schema=False)
@@ -83,7 +89,7 @@ async def publish_info(request: Request, email_address: EmailStr = Form(...), pa
             file.write(await image.read())
     else:
         file_name = ""
-    report_url = f"{request.base_url}report/{sender_id}/"  
+    report_url = f"{request.base_url}report/{sender_id}/"
     logger.info("Starting bg process for crowdcasting")
     Process(target=support.crowd_cast, args=(zipcode, description, file_name, report_url)).start()
     raise HTTPException(status_code=200, detail="email found: %s" % email_address)
@@ -185,13 +191,10 @@ async def confirmation_page(request: Request):
     return templates.TemplateResponse("weather.html", {"request": request})
 
 
-@app.get("/reportweather", response_class=HTMLResponse)
-async def report_page(request: Request):
-    return templates.TemplateResponse("report.html", {"request": request})
-
 @app.get("/userHomePage", response_class=HTMLResponse)
 async def home_page(request: Request):
     return templates.TemplateResponse("userHomePage.html", {"request": request})
+
 
 if __name__ == "__main__":
     uvicorn.run("main:app", port=5000, log_level="info")

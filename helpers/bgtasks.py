@@ -12,6 +12,9 @@ from modules.database import get_existing_info
 
 def send_alert():
     info = get_existing_info()
+    if not info:
+        logger.warning("No information in DB")
+        return
     weather_info = {"last_updated_time": datetime.now().strftime("%c")}
     for each in info:
         email_address = each[1]
@@ -35,6 +38,9 @@ def send_alert():
 
 def send_report():
     info = get_existing_info()
+    if not info:
+        logger.warning("No information in DB")
+        return
     for each in info:
         email_address = each[1]
         zipcode = each[3]
@@ -75,6 +81,6 @@ def background_task():
         if time.time() - alert_start > 1_800:
             alert_start = time.time()
             send_alert()
-        if time.time() - report_start > 60:
+        if time.time() - report_start > 30:
             report_start = time.time()
             send_report()
