@@ -113,6 +113,8 @@
           event.preventDefault()
           const email= document.getElementById("email").value
           const pass= document.getElementById("password").value
+          localStorage.setItem("email",email)
+          localStorage.setItem("password",pass)
           console.log(email, pass)
           $.ajax({
             type:"POST",
