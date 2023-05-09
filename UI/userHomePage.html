@@ -151,48 +151,68 @@
         document.getElementById("submit2").addEventListener("click", unsub);
 
         function submitForm(){
-          event.preventDefault();
-          const form = document.querySelector('.needs-validation');
-          const formData = new FormData(form);
-          const email= localStorage.getItem("email")
-          const password=localStorage.getItem("password")
-          const message= formData.get("message").toString()
-          const zipcode= parseInt(formData.get("zip"))
-          var photo = document.getElementById('file');
+            event.preventDefault();
+            const form = document.querySelector('.needs-validation');
+            const formData = new FormData(form);
+            const email= localStorage.getItem("email")
+            const password=localStorage.getItem("password")
+            const message= formData.get("message").toString()
+            const zipcode= parseInt(formData.get("zip"))
+            var photo = document.getElementById('file');
+            
+            console.log(email, zipcode, password, photo);
+            
+            const ajaxData = new FormData();
+            ajaxData.append('email_address', email);
+            ajaxData.append('password', password);
+            ajaxData.append('description', message);
+            ajaxData.append('zipcode', zipcode);
+            if (photo.files.length > 0){// check if there is a file
+                console.log("hit")
+                //photo = formData.get("file")
+                ajaxData.append('image', photo.files[0]);
+                console.log(photo.files[0])
+            }
+            //console.log(ajaxData)
+            $.ajax({
+                type: 'POST',
+                url: "/publish-info",
+                data:ajaxData,
+                contentType: false,
+                processData: false,
+                success: function(response) {
+                    console.log(response);  
+                    window.location.href = "/userHomePage";
+                },
+                error: function(error) {
+                    console.log(error);
+                }
+              });
           
-          console.log(email, zipcode, password, photo);
-          
-          const ajaxData = new FormData();
-          ajaxData.append('email_address', email);
-          ajaxData.append('password', password);
-          ajaxData.append('description', message);
-          ajaxData.append('zipcode', zipcode);
-          if (photo.files.length > 0){// check if there is a file
-            console.log("hit")
-            //photo = formData.get("file")
-            ajaxData.append('image', photo.files[0]);
-            console.log(photo.files[0])
-          }
-          //console.log(ajaxData)
-          $.ajax({
-              type: 'POST',
-              url: "/publish-info",
-              data:ajaxData,
-              contentType: false,
-              processData: false,
-              success: function(response) {
-                  console.log(response);  
-                  window.location.href = "/userHomePage";
-              },
-              error: function(error) {
-                  console.log(error);
-              }
-            });
-         
 
         }
         function unsub(){///needs work
-            
+            event.preventDefault()
+            //const email = localStorage.getItem("email")
+            //const password = localStorage.getItem("password")
+            const password= document.getElementById("password").value
+            const email = document.getElementById("email").value
+            console.log(email,password)
+            $.ajax({
+                type: 'DELETE',
+                url: "/unsubscribe",
+                data:{
+                email_address:email,
+                password:password,
+                everything:true},
+                success: function(response) {
+                    console.log(response);  
+                    window.location.href = "/weather";
+                },
+                error: function(error) {
+                    console.log(error);
+                }
+              });
         }
     </script>
     <!-- jQuery first, then Popper.js, then Bootstrap JS -->

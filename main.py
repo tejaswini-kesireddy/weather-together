@@ -105,18 +105,21 @@ async def publish_info(request: Request, email_address: EmailStr = Form(...), pa
     raise HTTPException(status_code=200, detail="email found: %s" % email_address)
 
 
-@app.delete(path="/unsubscribe")
-async def unsubscribe(email_address: EmailStr = Form(...), password: str = Form(...), everything: bool = False):
+@app.delete(path="/unsubscribe") #deletes everything rn
+async def unsubscribe(email_address: EmailStr = Form(...), password: str = Form(...), everything: bool = True):
     with db.connection:
+        logger.info("starting delete")
         cursor = db.connection.cursor()
         retrieve = cursor.execute(
             "SELECT userid, password FROM container WHERE email_address=?;", (email_address,)
         ).fetchone()
         if not retrieve:
+            logger.info("not in db")
             raise HTTPException(status_code=404, detail=f"{email_address} is currently not "
                                                         "subscribed to WeatherTogether")
         if secrets.compare_digest(password, tokenizer.hex_decode(retrieve[1])):
             if everything:
+                logger.info("delete everything")
                 cursor.execute(
                     "DELETE FROM container WHERE email_address=?;", (email_address,)
                 )
@@ -126,6 +129,7 @@ async def unsubscribe(email_address: EmailStr = Form(...), password: str = Form(
                 )
             db.connection.commit()
             if everything:
+                logger.info("unsubscribe successful for %s", email_address)
                 raise HTTPException(status_code=200, detail="Successfully unsubscribed from WeatherTogether")
             else:
                 raise HTTPException(status_code=200, detail="CrowdSourcing has been disabled")
@@ -180,7 +184,9 @@ async def report_spam(block_id: str, user_id: str):
         yaml.dump(data=data, stream=file, indent=4)
     return {"OK": "User ID reported"}
 
+#need a login verification point
 
+#can get rid of most of this below
 @app.get("/signup", response_class=HTMLResponse)
 async def login_page(request: Request):
     return templates.TemplateResponse("weather.html", {"request": request})
