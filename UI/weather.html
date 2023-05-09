@@ -136,12 +136,12 @@
                 <!-- Div for Zip Code-->
                 <div class="form-group">
                     <label for="">Please enter the 5 character code sent to your email:</label>
-                    <input type="text" class="form-control" id="zip" name="zip" placeholder="Zip Code" required>
+                    <input type="text" class="form-control" id="otp" name="otp" placeholder="confirmation" required>
                     <div class="invalid-feedback">
                         Please provide a valid code.
                     </div>
                   </div>
-                <button type="submit" class="btn btn-primary btn-block"id="myBtn">Submit</button>
+                <button type="submit" class="btn btn-primary btn-block"id="myBtn2">Submit</button>
             </form>
             </div>
           
@@ -179,6 +179,9 @@
         //JS function to change page once submit button is clicked, this can be changed later to 
         //a more proper way where when we submit the form it is sent to a POST and redirected to the new page :)
         document.getElementById("myBtn").addEventListener("click", submitForm);
+        document.getElementById("myBtn2").addEventListener("click", submitForm2);
+        
+        
         function submitForm(){
           event.preventDefault();
           formValidation();
@@ -225,7 +228,7 @@
               accept_crowd_sourcing: true},
               success: function(response) {
                 console.log(response);  
-                window.location.href = "/confirmation";
+                //window.location.href = "/confirmation";
               },
               error: function(error) {
                 console.log(error);
@@ -244,15 +247,71 @@
               accept_crowd_sourcing: true},
               success: function(response) {
                 console.log(response);  
-                window.location.href = "/confirmation";
+               //window.location.href = "/confirmation";
               },
               error: function(error) {
                 console.log(error);
               }
           });
-          }
+          }}
 
+          function submitForm2(){
+            event.preventDefault();
+          const form = document.querySelector('.needs-validation');
+          const formData = new FormData(form);
+          const time = parseInt(localStorage.getItem("time"))
+          const email= localStorage.getItem("email")
+          const zipcode=parseInt(localStorage.getItem("zipcode")) 
+          const password=localStorage.getItem("password")
+          const frequency=parseInt(localStorage.getItem("frequency"))
+          //const otpass = formData.get("otp").toString()
+          const otpass = document.getElementById("otp").value
+          console.log("OTP: ",otpass)
+          console.log(time, frequency);
+          console.log(email, zipcode, password);
+          if (frequency===0){
+          $.ajax({
+            type: 'POST',
+            url: "/create-alert",
+            data: {
+              email_address: email,
+              password: password,
+              zipcode: zipcode, //pasword1@
+              report_time: time,
+              //frequency: frequency,
+              otp: otpass,
+              accept_crowd_sourcing: true},
+              success: function(response) {
+                console.log(response);  
+                window.location.href = "/userHomePage";
+              },
+              error: function(error) {
+                console.log(error);
+              }
+          });
+        }else{
+          $.ajax({
+            type: 'POST',
+            url: "/create-alert",
+            data: {
+              email_address: email,
+              password: password,
+              zipcode: zipcode, //pasword1@
+              report_time: time,
+              frequency: frequency,
+              otp: otpass,
+              accept_crowd_sourcing: true},
+              success: function(response) {
+                console.log(response);  
+                //window.location.href = "/login"; // take to login when point is made
+               window.location.href = "/userHomePage"; // for now take to home page for testing
 
+              },
+              error: function(error) {
+                console.log(error);
+              }
+          });
+        }
       }
 
     </script>

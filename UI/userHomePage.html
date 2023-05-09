@@ -134,7 +134,7 @@
                                 Please provide a valid password.
                               </div>
                             </div>
-                            <button type="submit" class="btn btn-primary btn-block">Submit</button>
+                            <button type="submit" class="btn btn-primary btn-block" id="submit2">Submit</button>
                             <div id="small">
                             <small >No account? <a href="/weather"> Click Here </a> to go home.</small>
                             </div>
@@ -148,6 +148,8 @@
         <!-- Optional JavaScript -->
         <script>
         document.getElementById("myBtn").addEventListener("click", submitForm);
+        document.getElementById("submit2").addEventListener("click", unsub);
+
         function submitForm(){
           event.preventDefault();
           const form = document.querySelector('.needs-validation');
@@ -166,15 +168,16 @@
           ajaxData.append('description', message);
           ajaxData.append('zipcode', zipcode);
           if (photo.files.length > 0){// check if there is a file
-            //console.log("hit")
-            photo= formData.get("file")
-            ajaxData.append('image', photo);
+            console.log("hit")
+            //photo = formData.get("file")
+            ajaxData.append('image', photo.files[0]);
+            console.log(photo.files[0])
           }
-
+          //console.log(ajaxData)
           $.ajax({
               type: 'POST',
               url: "/publish-info",
-              data: ajaxData,
+              data:ajaxData,
               contentType: false,
               processData: false,
               success: function(response) {
@@ -184,9 +187,12 @@
               error: function(error) {
                   console.log(error);
               }
-          });
-        
+            });
+         
 
+        }
+        function unsub(){///needs work
+            
         }
     </script>
     <!-- jQuery first, then Popper.js, then Bootstrap JS -->
