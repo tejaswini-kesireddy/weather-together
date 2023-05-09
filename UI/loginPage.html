@@ -78,7 +78,7 @@
                     <input type="checkbox" class="form-check-input" id="exampleCheck1">
                     <label class="form-check-label" for="exampleCheck1">Remember Me</label>
                   </div>
-                  <button type="submit" class="btn btn-primary btn-block">Submit</button>
+                  <button type="submit" class="btn btn-primary btn-block"id="submit">Submit</button>
                   <div id="small">
                   <small >No account? <a href="/weather"> Click Here </a> to go home.</small>
                   </div>
@@ -108,7 +108,29 @@
                     }, false)
                 })
         })() //end funciton
+        document.getElementById("submit").addEventListener("click",login)
+        function login(){
+          event.preventDefault()
+          const email= document.getElementById("email").value
+          const pass= document.getElementById("password").value
+          console.log(email, pass)
+          $.ajax({
+            type:"POST",
+            url:"/login_verify",
+            data:{
+              email_address:email,
+              password:pass
+            },
+            success:function(response){
+              console.log(response);  
+              window.location.href = "/userHomePage";
+            },
+            error: function(error) {
+              console.log(error);
+            }
+          })
 
+        }
     </script>
 
     <!-- Optional JavaScript -->
