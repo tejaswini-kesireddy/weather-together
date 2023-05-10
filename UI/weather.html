@@ -9,7 +9,7 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.3.1/dist/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
 
     <title>Weather Together</title>
-    <link rel="icon" type="image/x-icon" href="weatherTogether.jpg">
+    <link rel="icon" type="image/x-icon" href="http://localhost:5000/images/weatherTogether.jpg">
     <style>
       .container-fluid{
         padding: 0px;
@@ -27,7 +27,7 @@
         padding: 0px;
         margin-left: 10%;
         margin-right: 10%;
-        font-family: andale mono;
+        font-family: 'Courier New', Courier, monospace;
         
       }
       #homeIcon{
@@ -41,6 +41,15 @@
         padding: 0px;
         margin: 0px;
         height: 100vh;
+        background-color: #1e2128;
+        color: lightblue;
+      }
+      input{
+        background-color: #333333 !important;
+      }
+      select{
+        background-color: #333333 !important;
+        color: lightblue !important;
       }
       #login{
         padding-top: 50px;
@@ -48,7 +57,12 @@
       }
       #verify{
         margin-top: 40% !important;
+        background-color: #1e2128;
+        color: lightblue;
       }
+      button{
+          background-color: maroon !important;
+        }
       
     </style>
   </head>
@@ -118,11 +132,6 @@
               <option value="30">30 minutes</option>
             </select>
           </div>
-            <!-- Div to click to signup for email alerts, although users are using our app to do this so could be removed. -->
-            <div class="form-group form-check">
-              <input type="checkbox" class="form-check-input" id="exampleCheck1">
-              <label class="form-check-label" for="exampleCheck1">Allow crowd-casting?</label>
-            </div>
             <button type="submit" class="btn btn-primary btn-block" id="myBtn" data-toggle="modal" data-target="#verifyModal">Sign Up</button>
             <div id="login">
               <small>Already have an account? <a href="/login"> Login Here </a> to report weather or unsubscribe from mailing.</small>
