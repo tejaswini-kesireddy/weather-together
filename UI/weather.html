@@ -193,18 +193,7 @@
           const time = parseInt(formData.get("report_time").replace(":", ""))
           var signUp = document.getElementById("signUp");
           //var verify = document.getElementById("verify");
-          if(signUp.style.display !== 'none'){
-            signUp.style.display = 'none';
-            
-          }else{
-            signUp.style.display = 'block';
-            
-          }
-          if(verify.style.display !== 'block'){
-            verify.style.display = 'block';
-          }else{
-            verify.style.display = 'none';
-          }
+         
           var frequency = parseInt(formData.get("frequency"))
           
           localStorage.setItem("email",email)
@@ -229,11 +218,23 @@
               success: function(response) {
                 console.log(response);  
                 //window.location.href = "/confirmation";
+                if(signUp.style.display !== 'none'){
+                  signUp.style.display = 'none';
+            
+                }else{
+                  signUp.style.display = 'block';
+            
+                }
+                if(verify.style.display !== 'block'){
+                  verify.style.display = 'block';
+                }else{
+                  verify.style.display = 'none';
+                }
               },
               error: function(error) {
                 console.log(error);
               }
-          });
+          })
           }else{
           $.ajax({
             type: 'POST',
@@ -248,11 +249,23 @@
               success: function(response) {
                 console.log(response);  
                //window.location.href = "/confirmation";
+               if(signUp.style.display !== 'none'){
+                signUp.style.display = 'none';
+            
+              }else{
+                signUp.style.display = 'block';
+            
+              }
+              if(verify.style.display !== 'block'){
+                verify.style.display = 'block';
+              }else{
+                verify.style.display = 'none';
+              }
               },
               error: function(error) {
                 console.log(error);
               }
-          });
+          })
           }}
 
           function submitForm2(){
