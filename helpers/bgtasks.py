@@ -74,6 +74,7 @@ def send_report():
 
 
 def background_task():
+    # todo: Add exception handler
     alert_start = time.time()
     report_start = time.time()
     send_alert()

@@ -2,6 +2,7 @@ import json
 import os
 import secrets
 import time
+from contextlib import asynccontextmanager
 from datetime import datetime
 from multiprocessing import Process
 
@@ -16,7 +17,16 @@ from helpers import log, support, tokenizer, bgtasks
 from modules.accessories import constants
 from modules.database import db
 
-app = FastAPI()
+
+@asynccontextmanager
+async def lifespan(_: FastAPI):
+    # Load the ML model
+    logger.info("Initiating background task")
+    Process(target=bgtasks.background_task).start()
+    yield
+
+
+app = FastAPI(lifespan=lifespan)
 logger = log.logger
 templates = Jinja2Templates(directory="UI")
 
@@ -29,12 +39,6 @@ async def images(image_name):
         return FileResponse(path=img_path)
     else:
         logger.error("%s is missing", img_path)
-
-
-@app.on_event(event_type="startup")
-async def startup():
-    logger.info("Initiating background task")
-    Process(target=bgtasks.background_task).start()
 
 
 @app.get("/", include_in_schema=False)
@@ -105,7 +109,7 @@ async def publish_info(request: Request, email_address: EmailStr = Form(...), pa
     raise HTTPException(status_code=200, detail="email found: %s" % email_address)
 
 
-@app.delete(path="/unsubscribe") #deletes everything rn
+@app.delete(path="/unsubscribe")  # deletes everything rn
 async def unsubscribe(email_address: EmailStr = Form(...), password: str = Form(...), everything: bool = True):
     with db.connection:
         logger.info("starting delete")
@@ -184,12 +188,14 @@ async def report_spam(block_id: str, user_id: str):
         yaml.dump(data=data, stream=file, indent=4)
     return {"OK": "User ID reported"}
 
+
 @app.get("/login", response_class=HTMLResponse)
 async def login_page(request: Request):
     return templates.TemplateResponse("loginPage.html", {"request": request})
 
+
 @app.post("/login_verify")
-async def login_verify( email_address:EmailStr= Form(...), password: str = Form(...)):
+async def login_verify(email_address: EmailStr = Form(...), password: str = Form(...)):
     logger.info("logged in as %s", email_address)
     cursor = db.connection.cursor()
     retrieve = cursor.execute(
@@ -198,14 +204,15 @@ async def login_verify( email_address:EmailStr= Form(...), password: str = Form(
     if not retrieve:
         logger.info("not in db")
         raise HTTPException(status_code=404, detail=f"{email_address} is currently not "
-                                                        "subscribed to WeatherTogether")
+                                                    "subscribed to WeatherTogether")
     db_password = tokenizer.hex_decode(retrieve[1])
 
     logger.info(db_password)
     if password != db_password:
         raise HTTPException(status_code=401, detail="Invalid email or password")
-    
-    return {"OK":"email and pass are verified"}    
+
+    return {"OK": "email and pass are verified"}
+
 
 @app.get("/weather", response_class=HTMLResponse)
 async def confirmation_page(request: Request):
