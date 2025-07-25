@@ -1,30 +1,30 @@
 import os
 
-from pydantic import BaseConfig, BaseSettings, Field
+from pydantic import BaseModel
+from pydantic_settings import BaseSettings
 
 
-class UserData(BaseConfig):
-    user_input = ('userid', 'email_address', 'password', 'zipcode', 'report_time', 'frequency', 'crowdsource_button')
+class UserData(BaseModel):
+    user_input: tuple = ('userid', 'email_address', 'password', 'zipcode', 'report_time', 'frequency',
+                         'crowdsource_button')
 
 
-class Constants(BaseConfig):
+class Constants(BaseModel):
     blocked_file: str = "blocked.json"
     report_file: str = "report_ids.yaml"
     report_threshold: int = 3
 
 
 class EnvVar(BaseSettings):
-    weather_api: str = Field(default=..., env="WEATHER_API")
-    email_username: str = Field(default=..., env="EMAIL_USERNAME")
-    email_password: str = Field(default=..., env="EMAIL_PASSWORD")
-    casting_distance: int = Field(default=5, env="CASTING_DISTANCE")
+    weather_api: str
+    email_username: str
+    email_password: str
+    casting_distance: int = 5
 
     class Config:
         """Environment variables configuration."""
-
         env_prefix = ""
         env_file = ".env"
-
 
 user_data = UserData()
 constants = Constants()
